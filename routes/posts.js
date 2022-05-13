@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Post = require('../models/postModel')
 const Like = require('../models/likesModel')
+const Imgur = require('../utils/imgur');
+const upload = require('../service/upload');
 const { successHandler, errorHandler } = require('../handler');
 
 
@@ -17,6 +19,22 @@ router.get('/', async (req, res) => {
     successHandler(res, posts)
   }catch(error){
     errorHandler(res,error,400)
+  }
+});
+
+router.post('/', upload.array('photos', 10),async (req, res) => {
+  const data = req.body;
+  const {userInfo, content} = data;
+  if (userInfo !== undefined && content !== undefined) {
+    if (req.files.length > 0) {
+      data.image = await Imgur.upload(req.files)
+    }
+    const newPost = await Post.create({
+      ...data,
+    });
+    successHandler(res, newPost);
+  } else {
+    errorHandler(res, '資料欄位未填寫', 400)
   }
 });
 
