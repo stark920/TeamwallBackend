@@ -18,8 +18,6 @@ const userSchema = new mongoose.Schema({
       roomId: {
         type: mongoose.Schema.ObjectId,
         ref: "ChatRoom",
-        // required: true,
-        // unique: true
       },
       receiver: {
         type: mongoose.Schema.ObjectId,

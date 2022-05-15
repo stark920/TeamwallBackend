@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const User = require("../models/user");
+const User = require("../models/userModel");
 const ChatRoom = require("../models/chatRoomModel");
 const appError = require("../service/appError");
 const handleErrorAsync = require("../service/handleErrorAsync");
