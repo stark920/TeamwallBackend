@@ -5,22 +5,21 @@ const Like = require('../models/likesModel')
 const Imgur = require('../utils/imgur');
 const upload = require('../service/upload');
 const { successHandler, errorHandler } = require('../handler');
+const appError = require("../service/appError");
+const handleErrorAsync = require("../service/handleErrorAsync");
 
-
-router.get('/', async (req, res) => {
-  // http://localhost:3005/posts?timeSort=asc&search=
-  const timeSort = req.query.timeSort == 'asc'? 1:-1
-  const search = req.query.search? {"content": new RegExp(req.query.search)} : {}; 
-  try{
-    const posts =await Post.find(search).populate({ //此是先將name編譯,可以不編譯只算長度
+router.get('/', handleErrorAsync(
+  async (req, res) => {
+    // http://localhost:3005/posts?timeSort=asc&search=
+    const timeSort = req.query.timeSort == 'asc'? 1:-1
+    const search = req.query.search? {"content": new RegExp(req.query.search)} : {}; 
+    const posts =await Post.find(search).populate({
       path: 'userInfo',
       select: 'name photo'
-    }).sort({'createAt': timeSort})  //.sort(timeSort)
-    successHandler(res, posts)
-  }catch(error){
-    errorHandler(res,error,400)
+    }).sort({'createAt': timeSort})
+    res.status(200).json({status:"success", data:posts})
   }
-});
+));
 
 router.post('/', upload.array('photos', 10),async (req, res) => {
   const data = req.body;

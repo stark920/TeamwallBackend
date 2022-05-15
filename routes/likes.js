@@ -3,38 +3,37 @@ const router = express.Router();
 const Post = require('../models/postModel')
 const Like = require('../models/likesModel')
 const { successHandler, errorHandler } = require('../handler');
-
+const appError = require("../service/appError");
+const handleErrorAsync = require("../service/handleErrorAsync");
 // 查詢
-router.post('/', async (req, res) => {
-  try{
+router.post('/', handleErrorAsync(
+  async (req, res) => {
     const data = req.body
-    if(!data.userInfo ){
-      throw '使用者Id缺一不可'
+    if(!data.userInfo){
+      return next(appError(400,"你沒有使用者ID",next))
     }
-
     const likes = await Like.findOne({"userInfo": data.userInfo})
-    .populate({ //此是先將userInfo 編譯
+    .populate({
       path: 'userInfo',
       select: 'name photo'
-    }).populate({ //此是先將posts 編譯
+    }).populate({
       path: 'posts',
       select: 'name content createAt'
     })
-
-    successHandler(res, likes)
-  }catch(error){
-    errorHandler(res,error,400)
+    res.status(200).json({status:"success", data:likes})
   }
-});
+));
 
 //新增-移除
-router.post('/likePost', async (req, res) => {
-  try{
+router.post('/likePost', handleErrorAsync(
+  async (req, res, next) => {
     const data = req.body
-    if(!data.userInfo || !data.posts ){
-      throw '使用者Id、喜歡文章Id、缺一不可'
+    if(!data.userInfo){
+      return next(appError(400,"你沒有使用者ID",next)) // 統一由express
     }
-
+    if(!data.posts ){
+      return next(appError(400,"你沒有輸入喜愛多文章",next))
+    }
     const user = await Like.findOne({"userInfo": data.userInfo})
 
     if(user){
@@ -44,13 +43,12 @@ router.post('/likePost', async (req, res) => {
         user.save()
 
         changePostLikes(data)
-        successHandler(res, user)
+        res.status(200).json({status:"success", data:user})
       }else{ //收藏
         user.posts.unshift(data.posts) 
         user.save()
-
         changePostLikes(data)
-        successHandler(res, user)
+        res.status(200).json({status:"success", data:user})
       }
     }else{
       const newLike = await Like.create({
@@ -59,12 +57,10 @@ router.post('/likePost', async (req, res) => {
       })
 
       changePostLikes()
-      successHandler(res, newLike)
+      res.status(200).json({status:"success", data:newLike})
     }
-  }catch(error){
-    errorHandler(res,error,400)
   }
-});
+));
 
 async function changePostLikes(data){
   const post = await Post.findOne({"_id": data.posts})
@@ -78,27 +74,23 @@ async function changePostLikes(data){
   }
 }
 
-router.delete('/', async (req, res) => {
-  try{
+router.delete('/', handleErrorAsync(
+  async (req, res) => {
     await Like.deleteMany({});
-    successHandler(res, [])
-  }catch(error){
-    errorHandler(res,error,400)
+    res.status(200).json({status:"success", data:[]})
   }
-});
+));
 
-router.delete('/:id', async (req, res) => {
-  try{
+router.delete('/:id', handleErrorAsync(
+  async (req, res, next) => {
     const id = req.params.id;
     const resultUser = await User.findByIdAndDelete(id);
     if(resultUser == null){
-      throw '查無此id'
+      return next(appError(400,"沒有此使用者喔",next)) 
     }
     const users =await User.find({});
-    successHandler(res, users)
-  }catch(error){
-    errorHandler(res,error,400)
+    res.status(200).json({status:"success", data:users})
   }
-});
+));
 
 module.exports = router;
