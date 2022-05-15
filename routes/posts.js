@@ -14,7 +14,7 @@ router.get('/', handleErrorAsync(
     const timeSort = req.query.timeSort == 'asc'? 1:-1
     const search = req.query.search? {"content": new RegExp(req.query.search)} : {}; 
     const posts =await Post.find(search).populate({
-      path: 'userInfo',
+      path: 'userId',
       select: 'name photo'
     }).sort({'createAt': timeSort})
     res.status(200).json({status:"success", data:posts})
@@ -23,8 +23,8 @@ router.get('/', handleErrorAsync(
 
 router.post('/', upload.array('photos', 10),async (req, res) => {
   const data = req.body;
-  const {userInfo, content} = data;
-  if (userInfo !== undefined && content !== undefined) {
+  const {userId, content} = data;
+  if (userId !== undefined && content !== undefined) {
     if (req.files.length > 0) {
       data.image = await Imgur.upload(req.files)
     }
