@@ -9,16 +9,20 @@ const handleErrorAsync = require("../service/handleErrorAsync");
 router.post('/', handleErrorAsync(
   async (req, res) => {
     const data = req.body
-    if(!data.userInfo){
+    if(!data.userId){
       return next(appError(400,"你沒有使用者ID",next))
     }
-    const likes = await Like.findOne({"userInfo": data.userInfo})
+    const likes = await Like.findOne({"userId": data.userId})
     .populate({
-      path: 'userInfo',
+      path: 'userId',
       select: 'name photo'
     }).populate({
       path: 'posts',
-      select: 'name content createAt'
+      select: 'name content createAt',
+      populate: {
+        path: 'userId',
+        select: 'name photo'
+      }
     })
     res.status(200).json({status:"success", data:likes})
   }
@@ -28,13 +32,13 @@ router.post('/', handleErrorAsync(
 router.post('/likePost', handleErrorAsync(
   async (req, res, next) => {
     const data = req.body
-    if(!data.userInfo){
+    if(!data.userId){
       return next(appError(400,"你沒有使用者ID",next)) // 統一由express
     }
     if(!data.posts ){
       return next(appError(400,"你沒有輸入喜愛多文章",next))
     }
-    const user = await Like.findOne({"userInfo": data.userInfo})
+    const user = await Like.findOne({"userId": data.userId})
 
     if(user){
       if(user.posts.includes(data.posts)){ //移除
@@ -52,11 +56,11 @@ router.post('/likePost', handleErrorAsync(
       }
     }else{
       const newLike = await Like.create({
-        userInfo: data.userInfo,
+        userId: data.userId,
         posts: [data.posts],
       })
 
-      changePostLikes()
+      changePostLikes(data)
       res.status(200).json({status:"success", data:newLike})
     }
   }
@@ -64,12 +68,13 @@ router.post('/likePost', handleErrorAsync(
 
 async function changePostLikes(data){
   const post = await Post.findOne({"_id": data.posts})
-  const likesIndex = post.likes.indexOf(data.userInfo)
-  if(likesIndex){
+  const likesIndex = post.likes.indexOf(data.userId)
+  if(likesIndex !== -1){
     post.likes.splice(likesIndex, 1) 
     post.save()
   }else{
-    post.likes.unshift(data.userInfo) 
+    post.likes.unshift(data.userId) 
+    console.log(data.userId)
     post.save()
   }
 }

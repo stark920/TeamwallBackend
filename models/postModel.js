@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const postsSchema = new mongoose.Schema({
-  userInfo: {
+  userId: {
     type: mongoose.Schema.ObjectId,
     ref: 'user',
     required: [true, '請輸入您的userId']
