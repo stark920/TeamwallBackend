@@ -13,6 +13,21 @@ const userSchema = new mongoose.Schema({
     select: false
   },
   photo: String,
+  chatRecord:{
+    type:[{
+      roomId: {
+        type: mongoose.Schema.ObjectId,
+        ref: "ChatRoom",
+        // required: true,
+        // unique: true
+      },
+      receiver: {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
+      }
+    }],
+    default:[]
+  }
 });
 
 const User = mongoose.model('user', userSchema);
