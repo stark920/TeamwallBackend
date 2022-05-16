@@ -1,12 +1,14 @@
 const express = require('express');
-const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const cors = require('cors');
+const path = require('path');
+const swaggerUI = require('swagger-ui-express');
+const swaggerFile = require('./swagger-output.json');
 const resError = require('./service/resError');
 
 process.on('uncaughtException', err => {
-	console.error('Uncaughted Exception！')
+	console.error('Uncaught Exception！')
   console.error(err);
 	process.exit(1);
 });
@@ -27,18 +29,18 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
 
-
 app.use('/posts', postsRouter);
 app.use('/users', usersRouter);
 app.use('/likes', likesRouter);
 app.use('/chat', chatRouter);
+app.use('/api-doc', swaggerUI.serve, swaggerUI.setup(swaggerFile));
 
-app.use(function(req,res,next){
+app.use(function (req, res, next) {
   res.status(404).json({
-      status:"false",
-      message:"您的路由不存在"
-  })
-})
+    status: false,
+    message: '您的路由不存在',
+  });
+});
 
 // express 錯誤處理
 app.use(function(err, req, res, next) {
@@ -48,12 +50,13 @@ app.use(function(err, req, res, next) {
     return resError.dev(err, res);
   } 
   // production
-  if (err.name === 'ValidationError'){ //mongoose 的欄位錯誤 error.name
-    err.message = "資料欄位未填寫正確，請重新輸入！"
+  if (err.name === 'ValidationError') {
+    //mongoose 的欄位錯誤 error.name
+    err.message = '資料欄位未填寫正確，請重新輸入！';
     err.isOperational = true;
     return resError.prod(err, res)
   }
-  resErrorProd(err, res)
+  resError.prod(err, res);
 });
 
 process.on('unhandledRejection', (err, promise) => {

@@ -1,11 +1,5 @@
-const handleErrorAsync = function handleErrorAsync(func) {
-  return function (req, res, next) {
-    func(req, res, next).catch(
-        function (error) {
-            return next(error);
-        }
-    );
-  };
+const handleErrorAsync = (func) => async (req, res, next) => {
+  func(req, res, next).catch((error) => next(error));
 };
 
 module.exports = handleErrorAsync;
