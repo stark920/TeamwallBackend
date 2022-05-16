@@ -125,7 +125,7 @@ router.delete(
   '/sign-out',
   isAuth,
   handleErrorAsync(async (req, res, next) => {
-    if (!req.user) appError(401, '帳號異常，請聯繫管理員', next);
+    if (!req.user) return appError(401, '帳號異常，請聯繫管理員', next);
 
     await User.findByIdAndUpdate(req.user._id, { isLogin: false });
 
@@ -216,7 +216,7 @@ router.patch(
   upload.single('avatar'),
   userValidator.updateProfile,
   handleErrorAsync(async (req, res, next) => {
-    if (!req.user) appError(401, '此帳號無法使用，請聯繫管理員', next);
+    if (!req.user) return appError(401, '此帳號無法使用，請聯繫管理員', next);
 
     let avatar;
     if (req.file) {
@@ -276,7 +276,7 @@ router.patch(
     const { errors } = validationResult(req);
     if (errors.length > 0) return appError(422, '輸入資料有誤', next);
 
-    if (!req.user) appError(401, '此帳號無法使用，請聯繫管理員', next);
+    if (!req.user) return appError(401, '此帳號無法使用，請聯繫管理員', next);
 
     const password = await bcrypt.hash(req.body.password, 12);
     await User.findByIdAndUpdate(req.user._id, { password });
@@ -314,7 +314,7 @@ router.get(
     if (errors.length > 0) return appError(422, '輸入資料有誤', next);
 
     const user = await User.findById(req.params.id).select('-avatar.deleteHash -avatar._id');
-    if (!user) appError(401, '查無該用戶資訊', next);
+    if (!user) return appError(401, '查無該用戶資訊', next);
 
     res.send({ status: true, data: user });
   })
