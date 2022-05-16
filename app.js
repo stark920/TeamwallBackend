@@ -7,9 +7,7 @@ const resError = require('./service/resError');
 
 process.on('uncaughtException', err => {
 	console.error('Uncaughted Exception！')
-	if (process.env.NODE_ENV === 'dev') {
-    console.error(error);
-  }
+  console.error(err);
 	process.exit(1);
 });
 
