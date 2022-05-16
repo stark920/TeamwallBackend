@@ -7,7 +7,7 @@
 var app = require('../app');
 var debug = require('debug')('teamwall:server');
 var http = require('http');
-
+const socket = require("../service/socket");
 /**
  * Get port from environment and store in Express.
  */
@@ -20,7 +20,10 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
+const io = socket(server)
 
+//全域註冊
+app.set('socketio', io)
 /**
  * Listen on provided port, on all network interfaces.
  */

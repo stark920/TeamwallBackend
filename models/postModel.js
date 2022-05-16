@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const postsSchema = new mongoose.Schema({
-  userInfo: {
+  userId: {
     type: mongoose.Schema.ObjectId,
     ref: 'user',
     required: [true, '請輸入您的userId']
@@ -10,7 +10,10 @@ const postsSchema = new mongoose.Schema({
     type: String,
     required: [true,"內文必填"]
   },
-  image: String,
+  image: [{
+    url: String,
+    deleteHash: String,
+  }],
   likes: [{
     type: mongoose.Schema.ObjectId,
     ref: 'user',
