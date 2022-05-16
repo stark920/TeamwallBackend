@@ -1,17 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const userValidator = require('../validates/users');
-const bcrypt = require('bcrypt');
-const { validationResult } = require('express-validator');
-const Imgur = require('../utils/imgur');
-const User = require('../models/userModel');
-const {
-  appError,
-  isAuth,
-  handleErrorAsync,
-  generateSendJWT,
-  upload,
-} = require('../service');
+const userControl = require('../controllers/users');
+const { isAuth, upload } = require('../service');
 
 // 登入權限測試
 router.get(
@@ -40,16 +31,7 @@ router.get(
    */
   '/check',
   isAuth,
-  handleErrorAsync(async (req, res, next) => {
-    if (!req.user) return appError(401, '此帳號無法使用，請聯繫管理員', next);
-    res.send({
-      status: true,
-      data: {
-        name: req.user.name,
-        avatar: req.user.avatar,
-      },
-    });
-  })
+  userControl.check
 );
 
 // 登入會員
@@ -83,21 +65,7 @@ router.post(
    */
   '/sign-in',
   userValidator.signIn,
-  handleErrorAsync(async (req, res, next) => {
-    const { errors } = validationResult(req);
-    if (errors.length > 0) return appError(401, '輸入資料錯誤', next);
-
-    const { email, password } = req.body;
-    const user = await User.findOne({ email }).select('+password +isLogin');
-    if (!user) return appError(401, '信箱或密碼錯誤', next);
-
-    const result = await bcrypt.compare(password, user.password);
-    if (!result) return appError(401, '信箱或密碼錯誤', next);
-
-    await User.findByIdAndUpdate(user._id, { isLogin: true });
-
-    generateSendJWT(user, 200, res);
-  })
+  userControl.signIn
 );
 
 // 登出會員
@@ -124,13 +92,7 @@ router.delete(
    */
   '/sign-out',
   isAuth,
-  handleErrorAsync(async (req, res, next) => {
-    if (!req.user) return appError(401, '帳號異常，請聯繫管理員', next);
-
-    await User.findByIdAndUpdate(req.user._id, { isLogin: false });
-
-    res.send({ status: true, message: '登出成功' });
-  })
+  userControl.signOut
 );
 
 // 註冊會員
@@ -165,19 +127,7 @@ router.post(
    */
   '/sign-up',
   userValidator.signUp,
-  handleErrorAsync(async (req, res, next) => {
-    const { errors } = validationResult(req);
-    if (errors.length > 0) return appError(422, '輸入資料有誤', next);
-
-    const { email, name } = req.body;
-    const emailIsUsed = await User.find({ email });
-    if (emailIsUsed.length > 0) return appError(422, '信箱已被使用', next);
-
-    const password = await bcrypt.hash(req.body.password, 12);
-    await User.create({ email, password, name });
-
-    res.send({ status: true, message: '註冊成功' });
-  })
+  userControl.signUp
 );
 
 // 更新使用者資料
@@ -215,28 +165,7 @@ router.patch(
   isAuth,
   upload.single('avatar'),
   userValidator.updateProfile,
-  handleErrorAsync(async (req, res, next) => {
-    if (!req.user) return appError(401, '此帳號無法使用，請聯繫管理員', next);
-
-    let avatar;
-    if (req.file) {
-      if (req.user.avatar?.deleteHash) {
-        await Imgur.delete([req.user.avatar]);
-      }
-      const images = await Imgur.upload([req.file]);
-      avatar = images[0];
-    }
-
-    const data = await User.findByIdAndUpdate(
-      req.user._id,
-      {
-        name: req.body.name,
-        avatar,
-      },
-      { new: true }
-    );
-    res.send({ status: true, data });
-  })
+  userControl.updateProfile
 );
 
 // 更新使用者密碼
@@ -272,16 +201,7 @@ router.patch(
   '/profile/pwd',
   isAuth,
   userValidator.updatePassword,
-  handleErrorAsync(async (req, res, next) => {
-    const { errors } = validationResult(req);
-    if (errors.length > 0) return appError(422, '輸入資料有誤', next);
-
-    if (!req.user) return appError(401, '此帳號無法使用，請聯繫管理員', next);
-
-    const password = await bcrypt.hash(req.body.password, 12);
-    await User.findByIdAndUpdate(req.user._id, { password });
-    res.send({ status: true, message: '修改成功' });
-  })
+  userControl.updatePassword
 );
 
 // 取得指定用戶資訊
@@ -309,15 +229,7 @@ router.get(
   '/:id',
   isAuth,
   userValidator.getProfile,
-  handleErrorAsync(async (req, res, next) => {
-    const { errors } = validationResult(req);
-    if (errors.length > 0) return appError(422, '輸入資料有誤', next);
-
-    const user = await User.findById(req.params.id).select('-avatar.deleteHash -avatar._id');
-    if (!user) return appError(401, '查無該用戶資訊', next);
-
-    res.send({ status: true, data: user });
-  })
+  userControl.getProfile
 );
 
 // ＊＊＊測試用＊＊＊ 取得所有會員資料
@@ -327,10 +239,7 @@ router.get(
    * #swagger.summary = '取得所有會員資料'
    */
   '/',
-  handleErrorAsync(async (req, res, next) => {
-    const users = await User.find().select('+password +isLogin');
-    res.send({ status: true, data: users });
-  })
+  userControl.getAllUsers
 );
 
 // ＊＊＊測試用＊＊＊ 刪除所有會員資料
@@ -340,10 +249,7 @@ router.delete(
    * #swagger.summary = '刪除所有會員資料'
    */
   '/',
-  handleErrorAsync(async (req, res, next) => {
-    const users = await User.deleteMany({});
-    res.send({ status: true, data: users });
-  })
+  userControl.delAllUsers
 );
 
 module.exports = router;
