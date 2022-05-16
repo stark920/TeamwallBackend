@@ -56,7 +56,7 @@ app.use(function(err, req, res, next) {
     err.isOperational = true;
     return resError.prod(err, res)
   }
-  resErrorProd(err, res);
+  resError.prod(err, res);
 });
 
 process.on('unhandledRejection', (err, promise) => {
