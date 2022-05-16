@@ -22,3 +22,5 @@ const resError = {
     });
   }
 }
+
+module.exports = resError;
