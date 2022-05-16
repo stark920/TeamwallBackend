@@ -1,32 +1,63 @@
 const mongoose = require('mongoose');
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, '請輸入您的名字']
-  },
-  email: {
-    type: String,
-    required: [true, '請輸入您的 Email'],
-    unique: true,
-    lowercase: false,
-    select: false
-  },
-  photo: String,
-  chatRecord:{
-    type:[{
-      roomId: {
-        type: mongoose.Schema.ObjectId,
-        ref: "ChatRoom",
+const userSchema = new mongoose.Schema(
+  {
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      select: false,
+    },
+    password: {
+      type: String,
+      required: true,
+      select: false,
+    },
+    avatar: {
+      type: {
+        deleteHash: String,
+        url: String,
       },
-      receiver: {
-        type: mongoose.Schema.ObjectId,
-        ref: "User",
-      }
-    }],
-    default:[]
+    },
+    gender: {
+      type: String,
+      enum: ['male', 'female', 'others'],
+    },
+    isLogin: {
+      type: Boolean,
+      default: false,
+      select: false,
+    },
+    chatRecord: {
+      type: [
+        {
+          roomId: {
+            type: mongoose.Schema.ObjectId,
+            ref: 'ChatRoom',
+          },
+          receiver: {
+            type: mongoose.Schema.ObjectId,
+            ref: 'User',
+          },
+        },
+      ],
+      default: [],
+    },
+  },
+  {
+    versionKey: false,
+    collection: 'Users',
   }
-});
+);
 
 const User = mongoose.model('user', userSchema);
 
