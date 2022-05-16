@@ -10,13 +10,13 @@ const Imgur = {
         method: 'post',
         url: 'https://api.imgur.com/3/image/',
         headers: {
-          Authorization: `Bearer ${process.env.ACCESS_TOKEN}`,
+          Authorization: `Bearer ${process.env.IMGUR_ACCESS_TOKEN}`,
           ...formData.getHeaders()
         },
         mimeType: 'multipart/form-data',
       };
       formData.append('image', Buffer.from(files[file].buffer));
-      formData.append('album', process.env.ACCESS_ALBUM);
+      formData.append('album', process.env.IMGUR_ACCESS_ALBUM);
       await axios({ ...options, data: formData })
         .then((res) => {
           imagesData.push({
@@ -37,7 +37,7 @@ const Imgur = {
         method: "delete",
         url: `https://api.imgur.com/3/image/${files[deleteHash]}`,
         headers: {
-          Authorization: `Bearer ${process.env.ACCESS_TOKEN}`
+          Authorization: `Bearer ${process.env.IMGUR_ACCESS_TOKEN}`
         },
       };
       await axios(settings).then((response) => {
