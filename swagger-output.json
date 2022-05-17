@@ -340,6 +340,16 @@
                 "content": {
                   "type": "string",
                   "example": "更新貼文"
+                },
+                "image": {
+                  "type": "array",
+                  "example": [],
+                  "items": {}
+                },
+                "likes": {
+                  "type": "array",
+                  "example": [],
+                  "items": {}
                 }
               }
             }
@@ -736,7 +746,22 @@
             "in": "formData",
             "type": "string",
             "require": "true",
-            "description": "暱稱(如果不夾帶圖片，只修改暱稱，可以用json傳)"
+            "description": "暱稱"
+          },
+          {
+            "name": "gender",
+            "in": "formData",
+            "type": "string",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "male",
+                "female",
+                "others"
+              ]
+            },
+            "require": "true",
+            "description": "性別(male, female, others)"
           }
         ],
         "responses": {

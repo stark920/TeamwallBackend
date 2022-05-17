@@ -3,6 +3,7 @@ const router = express.Router();
 const userValidator = require('../validates/users');
 const userControl = require('../controllers/users');
 const { isAuth, upload } = require('../service');
+const cors = require('cors');
 
 // 登入權限測試
 router.get(
@@ -31,6 +32,7 @@ router.get(
    */
   '/check',
   isAuth,
+  cors({ exposedHeaders: 'Authorization' }),
   userControl.check
 );
 
@@ -64,6 +66,7 @@ router.post(
       }
    */
   '/sign-in',
+  cors({ exposedHeaders: 'Authorization' }),
   userValidator.signIn,
   userControl.signIn
 );
@@ -133,6 +136,7 @@ router.post(
 // 更新使用者資料
 router.patch(
   /**
+   * #swagger.auto = false
    * #swagger.tags = ['Users']
    * #swagger.summary = '更新使用者資料'
    * #swagger.description = '夾帶圖片時需使用 FormData 格式'
@@ -147,7 +151,16 @@ router.patch(
         in: 'formData',
         type: 'string',
         require: 'true',
-        description: '暱稱(如果不夾帶圖片，只修改暱稱，可以用json傳)'
+        description: '暱稱'
+      }
+   * #swagger.parameters['gender'] = {
+        in: 'formData',
+        type: 'string',
+        schema: {
+          '@enum': ['male', 'female', 'others']
+        },
+        require: 'true',
+        description: '性別(male, female, others)'
       }
    * #swagger.responses[200] = {
         description: '取得使用者資訊',
