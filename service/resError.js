@@ -23,4 +23,4 @@ const resError = {
   }
 }
 
-module.exports = resError
+module.exports = resError;

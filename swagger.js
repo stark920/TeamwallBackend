@@ -8,7 +8,7 @@ const doc = {
     version: "1.0.0",
     description: 'this is api document'
   },
-  host: 'localhost:3000',
+  host: 'localhost:3005',
   schemes: ['http', 'https'],
   securityDefinitions: {
     apiKeyAuth: {
