@@ -265,4 +265,37 @@ router.delete(
   userControl.delAllUsers
 );
 
+// ＊＊＊測試用＊＊＊ 取得追蹤名單
+router.get(
+  /**
+   * #swagger.tags = ['Users ＊＊＊測試用＊＊＊']
+   * #swagger.summary = '取得追蹤名單'
+   */
+  '/follows',
+  isAuth,
+  userControl.getFollows
+);
+
+// ＊＊＊測試用＊＊＊ 新增追蹤名單
+router.post(
+  /**
+   * #swagger.tags = ['Users ＊＊＊測試用＊＊＊']
+   * #swagger.summary = '新增追蹤名單'
+   */
+  '/:id/follow',
+  isAuth,
+  userControl.postFollow
+);
+
+// ＊＊＊測試用＊＊＊ 刪除追蹤名單
+router.delete(
+  /**
+   * #swagger.tags = ['Users ＊＊＊測試用＊＊＊']
+   * #swagger.summary = '刪除追蹤名單'
+   */
+  '/:id/follow',
+  isAuth,
+  userControl.deleteFollow
+);
+
 module.exports = router;
