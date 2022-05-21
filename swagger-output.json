@@ -37,7 +37,19 @@
           {
             "name": "timeSort",
             "in": "query",
-            "description": "timeSort=asc (舊到新) or (新到舊)",
+            "description": "timeSort=asc (舊到新) or 不填寫 (新到舊)",
+            "type": "string"
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "description": "skip=Number",
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "limit=Number",
             "type": "string"
           }
         ],
@@ -949,6 +961,51 @@
         "summary": "刪除所有會員資料",
         "description": "",
         "parameters": [],
+        "responses": {}
+      }
+    },
+    "/users/follows": {
+      "get": {
+        "tags": [
+          "Users ＊＊＊測試用＊＊＊"
+        ],
+        "summary": "取得追蹤名單",
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/users/{id}/follow": {
+      "post": {
+        "tags": [
+          "Users ＊＊＊測試用＊＊＊"
+        ],
+        "summary": "新增追蹤名單",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      },
+      "delete": {
+        "tags": [
+          "Users ＊＊＊測試用＊＊＊"
+        ],
+        "summary": "刪除追蹤名單",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "responses": {}
       }
     },
