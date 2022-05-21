@@ -7,10 +7,16 @@ const posts = {
   getPosts: handleErrorAsync(async (req, res, next) => {
     const timeSort = req.query.timeSort == 'asc' ? 1 : -1
     const search = req.query.search ? { content: new RegExp(req.query.search) } : {};
+    const queryRecords = {
+      limit: req.query.limit,
+      skip: req.query.skip,
+    }
     const posts = await Post.find(search).populate({
       path: 'userId',
       select: 'name avatar'
     }).sort({ 'createAt': timeSort })
+      .skip(queryRecords.skip)
+      .limit(queryRecords.limit);
     res.send({ status: true, data: posts });
   }),
   getPost: handleErrorAsync(async (req, res, next) => {
