@@ -35,7 +35,7 @@ const posts = {
       content: req.body.content
     };
     if (req.files.length > 0) {
-      data.image = await Imgur.upload(req.files)
+      data.image = await Imgur.upload(req.files);
     }
     const newPost = await Post.create({
       ...data,
