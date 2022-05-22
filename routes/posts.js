@@ -16,7 +16,15 @@ router.get(
     }
    * #swagger.parameters['timeSort'] = {
       in: 'query',
-      description: 'timeSort=asc (舊到新) or (新到舊)',
+      description: 'timeSort=asc (舊到新) or 不填寫 (新到舊)',
+    }
+   * #swagger.parameters['skip'] = {
+      in: 'query',
+      description: 'skip=Number',
+    }
+   * #swagger.parameters['limit'] = {
+      in: 'query',
+      description: 'limit=Number',
     }
    * #swagger.security = [{ apiKeyAuth: []}]
    * #swagger.responses[200] = {

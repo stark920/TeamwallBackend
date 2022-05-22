@@ -102,6 +102,46 @@ const user = {
     const users = await User.deleteMany({});
     res.send({ status: true, data: users });
   }),
+  getFollows: handleErrorAsync(async (req, res, next) => {
+    const list = await User.find({
+      followers: { $in: [req.user.id] }
+    }).populate({
+      path:"user",
+      select:"name _id avatar"
+    });
+    res.send({ status: true, data: list });
+  }),
+  postFollow: handleErrorAsync(async (req, res, next) => {
+    if (req.params.id === req.user.id) {
+      return appError(401, '無法追蹤自己', next);
+    }
+
+    await User.updateOne(
+      {
+        _id: req.params.id,
+        'followers.user': { $ne: req.user.id }
+      },
+      {
+        $addToSet: { followers: { user: req.user.id } }
+      }
+    );
+    res.send({ status: true, message: '已成功追蹤' });
+  }),
+  deleteFollow: handleErrorAsync(async (req, res, next) => {
+    if (req.params.id === req.user.id) {
+      return appError(401, '無法取消追蹤自己', next);
+    }
+
+    await User.updateOne(
+      {
+        _id: req.user.id
+      },
+      {
+        $pull: { followers: { user: req.params.id } }
+      }
+    );
+    res.send({ status: true, message: '已取消追蹤' });
+  })
 };
 
 module.exports = user;

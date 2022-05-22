@@ -37,7 +37,19 @@
           {
             "name": "timeSort",
             "in": "query",
-            "description": "timeSort=asc (舊到新) or (新到舊)",
+            "description": "timeSort=asc (舊到新) or 不填寫 (新到舊)",
+            "type": "string"
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "description": "skip=Number",
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "limit=Number",
             "type": "string"
           }
         ],
@@ -1000,68 +1012,23 @@
         "responses": {}
       }
     },
-    "/likes/": {
-      "post": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "userId": {
-                  "example": "any"
-                }
-              }
-            }
-          }
+    "/users/follows": {
+      "get": {
+        "tags": [
+          "Users ＊＊＊測試用＊＊＊"
         ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      },
-      "delete": {
+        "summary": "取得追蹤名單",
         "description": "",
         "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
+        "responses": {}
       }
     },
-    "/likes/likePost": {
+    "/users/{id}/follow": {
       "post": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "userId": {
-                  "example": "any"
-                },
-                "posts": {
-                  "example": "any"
-                }
-              }
-            }
-          }
+        "tags": [
+          "Users ＊＊＊測試用＊＊＊"
         ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/likes/{id}": {
-      "delete": {
+        "summary": "新增追蹤名單",
         "description": "",
         "parameters": [
           {
@@ -1071,11 +1038,236 @@
             "type": "string"
           }
         ],
+        "responses": {}
+      },
+      "delete": {
+        "tags": [
+          "Users ＊＊＊測試用＊＊＊"
+        ],
+        "summary": "刪除追蹤名單",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/likes/": {
+      "post": {
+        "tags": [
+          "Likes"
+        ],
+        "summary": "取得某人喜愛貼文",
+        "description": "如為登入狀態，回傳所有喜愛貼文",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "資料格式",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string",
+                  "example": "jwt 所取得的 id"
+                }
+              }
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "取得某人所有喜愛貼文",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "_id": {
+                      "type": "string",
+                      "example": "xxxxxx"
+                    },
+                    "userId": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "example": "此處會是使用者 id"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Meme"
+                        }
+                      }
+                    },
+                    "posts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "_id": {
+                            "type": "string",
+                            "example": "xxxxxx"
+                          },
+                          "userId": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "example": "此處會是那篇創作者 id"
+                              },
+                              "name": {
+                                "type": "string",
+                                "example": "六角超人"
+                              }
+                            }
+                          },
+                          "content": {
+                            "type": "string",
+                            "example": "這是一段話"
+                          },
+                          "createAt": {
+                            "type": "string",
+                            "example": "2022-05-22T03:18:26.158Z"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "400": {
+            "description": "回傳錯誤訊息",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "message": {
+                  "type": "string",
+                  "example": "錯誤訊息"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/likes/likePost": {
+      "post": {
+        "tags": [
+          "Likes"
+        ],
+        "summary": "收藏/取消 喜愛貼文",
+        "description": "如為登入狀態，下點擊後收藏/取消 喜愛貼文",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "資料格式",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string",
+                  "example": "jwt 所取得的 id"
+                },
+                "posts": {
+                  "type": "string",
+                  "example": "點擊的那篇貼文 id"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "取得某人所有喜愛貼文",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "_id": {
+                      "type": "string",
+                      "example": "xxxx"
+                    },
+                    "userId": {
+                      "type": "string",
+                      "example": "此處會是使用者 id"
+                    },
+                    "posts": {
+                      "type": "array",
+                      "example": [
+                        "此處會是收藏的貼文 id"
+                      ],
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "400": {
+            "description": "回傳錯誤訊息",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "message": {
+                  "type": "string",
+                  "example": "錯誤訊息"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ]
       }
     },
     "/chat/room-info": {

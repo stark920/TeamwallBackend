@@ -11,14 +11,19 @@ const posts = {
     const search = req.query.search
       ? {content: new RegExp(req.query.search)}
       : {}
+    const queryRecords = {
+      limit: req.query.limit,
+      skip: req.query.skip,
+    }
     // const posts = await Post.find(search).populate({
     //   path: 'userId',
     //   select: 'name avatar'
     // }).sort({ 'createAt': timeSort })
+    //   .skip(queryRecords.skip)
+    //   .limit(queryRecords.limit);
 
     // current user
     const currentUser = req.user
-    console.log(currentUser._id.toString())
 
     let posts = await Post.aggregate([
       {
@@ -27,6 +32,8 @@ const posts = {
       {
         $sort: {createAt: timeSort},
       },
+      { $skip: queryRecords.skip },
+      { $limit: queryRecords.limit },
       {
         $lookup: {
           from: 'comments',
@@ -75,13 +82,6 @@ const posts = {
         },
       },
     ])
-
-    // posts = await Post.populate(posts, [
-    //   {
-    //     path: 'userId',
-    //     select: 'name avatar',
-    //   },
-    // ])
 
     res.send({status: true, data: posts})
   }),
