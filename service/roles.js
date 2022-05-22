@@ -1,7 +1,6 @@
 const appError = require("../service/appError");
 
 const requiredBody = {
-  user: ["name", "email", "password"],
   post: ["user", "content"],
   comment: ["content"],
 };
