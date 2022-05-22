@@ -32,8 +32,8 @@ const posts = {
       {
         $sort: {createAt: timeSort},
       },
-      { $skip: queryRecords.skip },
-      { $limit: queryRecords.limit },
+      { $skip: Number(queryRecords.skip) || 0 },
+      { $limit: Number(queryRecords.limit) || 10 }, // default post number with 10
       {
         $lookup: {
           from: 'comments',
