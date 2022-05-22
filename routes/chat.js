@@ -12,7 +12,7 @@ router.post(
   "/room-info",
   isAuth,
   handleErrorAsync(async (req, res, next) => {
-    const sender = req.user._id;
+    const sender = req.user._id.toString();
     const receiver = req.body.receiver;
     if (!receiver) {
       return next(appError(400, "未填寫聊天對象使用者id", next));
@@ -25,11 +25,16 @@ router.post(
       queryResult?.chatRecord.find(
         (item) => item.receiver.toString() === receiver
       ) || {};
+    const receiverUser = await User.findById(receiver)
+    const { userName, avatar, _id } = receiverUser
     //已經有聊天記錄就直接回傳id
     if (receiverRecord) {
       res.status(200).json({
         status: "success",
         roomId,
+        userName, 
+        avatar,
+        _id
       });
     } else {
     //沒有聊天記錄就新建房間
@@ -45,6 +50,9 @@ router.post(
       res.status(200).json({
         status: "success",
         roomId: newRoom._id,
+        userName, 
+        avatar,
+        _id
       });
     }
   })
@@ -82,6 +90,7 @@ router.post(
   "/chat-record",
   isAuth,
   handleErrorAsync(async (req, res, next) => {
+    console.log('user._id', req.user._id);
     const [ queryResult ] = await User.aggregate([
       { $match: { _id: req.user._id } },
       {
