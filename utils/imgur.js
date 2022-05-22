@@ -1,8 +1,10 @@
 const FormData = require('form-data');
 const axios = require('axios');
+const sharp = require('sharp');
 
+// 可帶入寬高去改變原始圖檔尺寸，再上傳至 imgur
 const Imgur = {
-  async upload(files) {
+  async upload(files, imgWidth = null, imgHeight = null) {
     const imagesData = [];
     for (const file in files) {
       const formData = new FormData();
@@ -15,7 +17,9 @@ const Imgur = {
         },
         mimeType: 'multipart/form-data',
       };
-      formData.append('image', Buffer.from(files[file].buffer));
+      const imageBuffer = sharp(Buffer.from(files[file].buffer))
+        .resize({ width: imgWidth, height: imgHeight });
+      formData.append('image', imageBuffer);
       formData.append('album', process.env.IMGUR_ACCESS_ALBUM);
       await axios({ ...options, data: formData })
         .then((res) => {

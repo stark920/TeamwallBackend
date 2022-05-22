@@ -5,8 +5,8 @@ const upload = multer({
     const fileSize = parseInt(req.headers['content-length']);
     const error = new Error();
     error.isOperational = true;
-    if (fileSize >= 10485760) {
-      error.message = '檔案需在 10 MB 內';
+    if (fileSize >= 2*1024*1024) {
+      error.message = '檔案需在 2 MB 內';
       return callback(error);
     }
     if (
