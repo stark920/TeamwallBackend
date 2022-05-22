@@ -1011,16 +1011,22 @@
     },
     "/likes/": {
       "post": {
-        "description": "",
+        "tags": [
+          "Likes"
+        ],
+        "summary": "取得某人喜愛貼文",
+        "description": "如為登入狀態，回傳所有喜愛貼文",
         "parameters": [
           {
             "name": "body",
             "in": "body",
+            "description": "資料格式",
             "schema": {
               "type": "object",
               "properties": {
                 "userId": {
-                  "example": "any"
+                  "type": "string",
+                  "example": "jwt 所取得的 id"
                 }
               }
             }
@@ -1028,35 +1034,124 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "取得某人所有喜愛貼文",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "_id": {
+                      "type": "string",
+                      "example": "xxxxxx"
+                    },
+                    "userId": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "example": "此處會是使用者 id"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Meme"
+                        }
+                      }
+                    },
+                    "posts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "_id": {
+                            "type": "string",
+                            "example": "xxxxxx"
+                          },
+                          "userId": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "example": "此處會是那篇創作者 id"
+                              },
+                              "name": {
+                                "type": "string",
+                                "example": "六角超人"
+                              }
+                            }
+                          },
+                          "content": {
+                            "type": "string",
+                            "example": "這是一段話"
+                          },
+                          "createAt": {
+                            "type": "string",
+                            "example": "2022-05-22T03:18:26.158Z"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "400": {
+            "description": "回傳錯誤訊息",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "message": {
+                  "type": "string",
+                  "example": "錯誤訊息"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
           }
-        }
-      },
-      "delete": {
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
+        },
+        "security": [
+          {
+            "apiKeyAuth": []
           }
-        }
+        ]
       }
     },
     "/likes/likePost": {
       "post": {
-        "description": "",
+        "tags": [
+          "Likes"
+        ],
+        "summary": "收藏/取消 喜愛貼文",
+        "description": "如為登入狀態，下點擊後收藏/取消 喜愛貼文",
         "parameters": [
           {
             "name": "body",
             "in": "body",
+            "description": "資料格式",
             "schema": {
               "type": "object",
               "properties": {
                 "userId": {
-                  "example": "any"
+                  "type": "string",
+                  "example": "jwt 所取得的 id"
                 },
                 "posts": {
-                  "example": "any"
+                  "type": "string",
+                  "example": "點擊的那篇貼文 id"
                 }
               }
             }
@@ -1064,27 +1159,67 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "取得某人所有喜愛貼文",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "_id": {
+                      "type": "string",
+                      "example": "xxxx"
+                    },
+                    "userId": {
+                      "type": "string",
+                      "example": "此處會是使用者 id"
+                    },
+                    "posts": {
+                      "type": "array",
+                      "example": [
+                        "此處會是收藏的貼文 id"
+                      ],
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "400": {
+            "description": "回傳錯誤訊息",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "message": {
+                  "type": "string",
+                  "example": "錯誤訊息"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
           }
-        }
-      }
-    },
-    "/likes/{id}": {
-      "delete": {
-        "description": "",
-        "parameters": [
+        },
+        "security": [
           {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
+            "apiKeyAuth": []
           }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
+        ]
       }
     },
     "/chat/room-info": {
