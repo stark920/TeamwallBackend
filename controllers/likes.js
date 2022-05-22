@@ -15,13 +15,13 @@ const likes = {
       const likes = await Like.findOne({"userId": data.userId})
       .populate({
         path: 'userId',
-        select: 'name photo'
+        select: 'name avatar'
       }).populate({
         path: 'posts',
         select: 'name content createAt',
         populate: {
           path: 'userId',
-          select: 'name photo'
+          select: 'name avatar'
         }
       })
       res.status(200).json({status:true , data:likes})
