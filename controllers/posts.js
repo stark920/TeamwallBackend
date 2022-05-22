@@ -1,17 +1,89 @@
 const Post = require('../models/postModel');
 const Like = require('../models/likesModel')
+const Comment = require('../models/commentModel')
 const { appError, handleErrorAsync } = require("../service");
 const Imgur = require('../utils/imgur');
+const mongoose = require('mongoose')
 
 const posts = {
   getPosts: handleErrorAsync(async (req, res, next) => {
     const timeSort = req.query.timeSort == 'asc' ? 1 : -1
-    const search = req.query.search ? { content: new RegExp(req.query.search) } : {};
-    const posts = await Post.find(search).populate({
-      path: 'userId',
-      select: 'name avatar'
-    }).sort({ 'createAt': timeSort })
-    res.send({ status: true, data: posts });
+    const search = req.query.search
+      ? {content: new RegExp(req.query.search)}
+      : {}
+    // const posts = await Post.find(search).populate({
+    //   path: 'userId',
+    //   select: 'name avatar'
+    // }).sort({ 'createAt': timeSort })
+
+    // current user
+    const currentUser = req.user
+    console.log(currentUser._id.toString())
+
+    let posts = await Post.aggregate([
+      {
+        $match: search,
+      },
+      {
+        $sort: {createAt: timeSort},
+      },
+      {
+        $lookup: {
+          from: 'comments',
+          localField: '_id', // post collection column
+          foreignField: 'postId', // comments collection column
+          let: {
+            userId: '$userId',
+          },
+          pipeline: [
+            {$sort: {createAt: -1}}, // comments new -> old
+            {$limit: 2},
+            {
+              $addFields: {
+                actions: {
+                  $cond: [
+                    {
+                      // Post owner can do "edit", "delete" ;
+                      // Visiter can do "hide"
+                      $eq: [
+                        '$$userId',
+                        mongoose.Types.ObjectId(currentUser._id.toString()),
+                      ],
+                    },
+                    ['edit', 'delete'],
+                    ['hide'],
+                  ],
+                },
+              },
+            },
+          ],
+          as: 'comments',
+        },
+      },
+      {
+        $lookup: {
+          from: 'Users',
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+              },
+            },
+          ],
+          as: 'userId',
+        },
+      },
+    ])
+
+    // posts = await Post.populate(posts, [
+    //   {
+    //     path: 'userId',
+    //     select: 'name avatar',
+    //   },
+    // ])
+
+    res.send({status: true, data: posts})
   }),
   getPost: handleErrorAsync(async (req, res, next) => {
     const post = await Post.find({ _id: req.params.id }).populate({
@@ -28,7 +100,7 @@ const posts = {
       userId: req.user._id,
       content: req.body.content
     };
-    if (req.files.length > 0) {
+    if (req?.files && req.files.length > 0) {
       data.image = await Imgur.upload(req.files)
     }
     const newPost = await Post.create({
@@ -49,11 +121,29 @@ const posts = {
   }),
   deletePosts: handleErrorAsync(async (req, res, next) => {
     const posts = await Post.deleteMany({});
-    res.send({ status: true, data: posts });
+    const comments = await Comment.deleteMany({})
+
+    res.send({
+      status: true,
+      data: {
+        deletePost: posts,
+        deleteComments: comments,
+      },
+    })
   }),
   deletePost: handleErrorAsync(async (req, res, next) => {
-    const posts = await Post.deleteOne({ _id: req.params.id });
-    res.send({ status: true, data: posts });
+    const post = await Post.deleteOne({ _id: req.params.id });
+    const comments = await Comment.deleteMany({
+      postId: mongoose.Types.ObjectId(req.params.id),
+    })
+
+    res.send({ 
+      status: true, 
+      data: {
+        deletePost: post,
+        deleteComments: comments
+      } 
+    });
   })
 }
 

@@ -13,7 +13,13 @@ const commentsSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'user',
+      // select: false,
       required: [true, '請輸入您的userId'],
+    },
+    createAt: {
+      type: Date,
+      default: Date.now,
+      select: true,
     },
   },
   {
