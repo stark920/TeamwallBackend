@@ -1,101 +1,93 @@
 const express = require('express');
 const router = express.Router();
-const Post = require('../models/postModel')
-const Like = require('../models/likesModel')
-const { successHandler, errorHandler } = require('../handler');
-const appError = require("../service/appError");
-const handleErrorAsync = require("../service/handleErrorAsync");
+const likesControl = require('../controllers/likes');
+const { isAuth } = require('../service');
+
 // 查詢
-router.post('/', handleErrorAsync(
-  async (req, res) => {
-    const data = req.body
-    if(!data.userId){
-      return next(appError(400,"你沒有使用者ID",next))
-    }
-    const likes = await Like.findOne({"userId": data.userId})
-    .populate({
-      path: 'userId',
-      select: 'name photo'
-    }).populate({
-      path: 'posts',
-      select: 'name content createAt',
-      populate: {
-        path: 'userId',
-        select: 'name photo'
+router.post(
+  /**
+   * #swagger.tags = ['Likes']
+   * #swagger.summary = '取得某人喜愛貼文'
+   * #swagger.description = '如為登入狀態，回傳所有喜愛貼文'
+   * #swagger.security = [{ apiKeyAuth: []}]
+   * #swagger.parameters['body'] = {
+      in: 'body',
+      description: '資料格式',
+      schema: {
+        userId: 'jwt 所取得的 id',
       }
-    })
-    res.status(200).json({status:"success", data:likes})
-  }
-));
+    }
+   * #swagger.responses[200] = {
+        description: '取得某人所有喜愛貼文',
+        schema: {
+          status: true,
+          data: {
+            _id: 'xxxxxx',
+            userId: {
+              _id: '此處會是使用者 id',
+              name: 'Meme'
+            },
+            posts: [
+              {
+                _id: 'xxxxxx',
+                userId: {
+                  _id: '此處會是那篇創作者 id',
+                  name: '六角超人'
+                },
+                content: '這是一段話',
+                createAt: '2022-05-22T03:18:26.158Z'
+              }
+            ]
+          }
+        }
+      }
+   * #swagger.responses[400] = {
+        description: '回傳錯誤訊息',
+        schema: {
+          status: false,
+          message: '錯誤訊息'
+        }
+      }
+   */
+  '/', isAuth, likesControl.getLikes);
 
 //新增-移除
-router.post('/likePost', handleErrorAsync(
-  async (req, res, next) => {
-    const data = req.body
-    if(!data.userId){
-      return next(appError(400,"你沒有使用者ID",next)) // 統一由express
-    }
-    if(!data.posts ){
-      return next(appError(400,"你沒有輸入喜愛多文章",next))
-    }
-    const user = await Like.findOne({"userId": data.userId})
-
-    if(user){
-      if(user.posts.includes(data.posts)){ //移除
-        const postsIndex = user.posts.indexOf(data.posts)
-        user.posts.splice(postsIndex, 1) 
-        user.save()
-
-        changePostLikes(data)
-        res.status(200).json({status:"success", data:user})
-      }else{ //收藏
-        user.posts.unshift(data.posts) 
-        user.save()
-        changePostLikes(data)
-        res.status(200).json({status:"success", data:user})
+router.post(
+  /**
+   * #swagger.tags = ['Likes']
+   * #swagger.summary = '收藏/取消 喜愛貼文'
+   * #swagger.description = '如為登入狀態，下點擊後收藏/取消 喜愛貼文'
+   * #swagger.security = [{ apiKeyAuth: []}]
+   * #swagger.parameters['body'] = {
+      in: 'body',
+      description: '資料格式',
+      schema: {
+        userId: 'jwt 所取得的 id',
+        posts: '點擊的那篇貼文 id'
       }
-    }else{
-      const newLike = await Like.create({
-        userId: data.userId,
-        posts: [data.posts],
-      })
-
-      changePostLikes(data)
-      res.status(200).json({status:"success", data:newLike})
     }
-  }
-));
+   * #swagger.responses[200] = {
+        description: '取得某人所有喜愛貼文',
+        schema: {
+          status: true,
+          data: {
+            _id: 'xxxx',
+            userId: '此處會是使用者 id',
+            posts: [
+              '此處會是收藏的貼文 id'
+            ]
+          }
+        }
+      }
+   * #swagger.responses[400] = {
+        description: '回傳錯誤訊息',
+        schema: {
+          status: false,
+          message: '錯誤訊息'
+        }
+      }
+   */
+  '/likePost', isAuth, likesControl.postAndCancelLike);
 
-async function changePostLikes(data){
-  const post = await Post.findOne({"_id": data.posts})
-  const likesIndex = post.likes.indexOf(data.userId)
-  if(likesIndex !== -1){
-    post.likes.splice(likesIndex, 1) 
-    post.save()
-  }else{
-    post.likes.unshift(data.userId) 
-    console.log(data.userId)
-    post.save()
-  }
-}
-
-router.delete('/', handleErrorAsync(
-  async (req, res) => {
-    await Like.deleteMany({});
-    res.status(200).json({status:"success", data:[]})
-  }
-));
-
-router.delete('/:id', handleErrorAsync(
-  async (req, res, next) => {
-    const id = req.params.id;
-    const resultUser = await User.findByIdAndDelete(id);
-    if(resultUser == null){
-      return next(appError(400,"沒有此使用者喔",next)) 
-    }
-    const users =await User.find({});
-    res.status(200).json({status:"success", data:users})
-  }
-));
 
 module.exports = router;
