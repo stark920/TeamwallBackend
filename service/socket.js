@@ -2,6 +2,9 @@ const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
 const ChatRoom = require("../models/chatRoomModel");
 const User = require("../models/userModel");
+const dotenv = require("dotenv");
+dotenv.config({ path: "../config.env" });
+
 module.exports = function (server) {
   const io = new Server(server, {
     path: "/socket.io/",
@@ -84,10 +87,7 @@ module.exports = function (server) {
                       input: "$messages",
                       as: "item",
                       cond: {
-                        $lt: [
-                          "$$item.createdAt",
-                          new Date(lastTime),
-                        ],
+                        $lt: ["$$item.createdAt", new Date(lastTime)],
                         // $eq: ["$$item.sender", "62833a81d3692f15d21af56d"],
                       },
                     },
@@ -98,7 +98,7 @@ module.exports = function (server) {
             },
           },
         ]);
-        msgList = queryResult.messages
+        msgList = queryResult.messages;
       } else {
         msgList = await ChatRoom.find(
           { _id: room },
