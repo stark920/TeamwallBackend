@@ -31,16 +31,45 @@ router.get(
         description: '取得所有貼文資料',
         schema: {
           status: true,
-          data: {
-            _id: '',
-            userId: {
-              _id: '',
-              name: ''
+          data: [
+            {
+              "_id": "628a0aea9acb6cb7d6b70d93",
+              "userId": [
+                {
+                  "_id": "6286d9983208cb01aafaa562",
+                  "name": "Meme"
+                }
+              ],
+              "content": "我只是個測試唷!",
+              "likes": [],
+              "image": [],
+              "createAt": "2022-05-22T10:05:30.803Z",
+              "comments": [
+                {
+                  "_id": "628a0c089acb6cb7d6b70da6",
+                  "content": "我只是個測試唷 - 回應4",
+                  "postId": "628a0aea9acb6cb7d6b70d93",
+                  "userId": "6286d9983208cb01aafaa562",
+                  "createAt": "2022-05-22T10:10:16.925Z",
+                  "actions": [
+                    "edit",
+                    "delete"
+                  ]
+                },
+                {
+                  "_id": "628a0c029acb6cb7d6b70da2",
+                  "content": "我只是個測試唷 - 回應3",
+                  "postId": "628a0aea9acb6cb7d6b70d93",
+                  "userId": "6286d9983208cb01aafaa562",
+                  "createAt": "2022-05-22T10:10:10.792Z",
+                  "actions": [
+                    "edit",
+                    "delete"
+                  ]
+                }
+              ]
             },
-            content: '',
-            imgage: [],
-            likes: [],
-          }
+          ]
         }
       }
    * #swagger.responses[400] = {
@@ -51,7 +80,10 @@ router.get(
         }
       }
    */
-  '/', isAuth, postsControl.getPosts);
+  '/',
+  isAuth,
+  postsControl.getPosts
+)
 router.get(
   /**
    * #swagger.tags = ['Posts']

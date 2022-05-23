@@ -1,23 +1,89 @@
 const Post = require('../models/postModel');
 const Like = require('../models/likesModel')
+const Comment = require('../models/commentModel')
 const { appError, handleErrorAsync } = require("../service");
 const Imgur = require('../utils/imgur');
+const mongoose = require('mongoose')
 
 const posts = {
   getPosts: handleErrorAsync(async (req, res, next) => {
     const timeSort = req.query.timeSort == 'asc' ? 1 : -1
-    const search = req.query.search ? { content: new RegExp(req.query.search) } : {};
+    const search = req.query.search
+      ? {content: new RegExp(req.query.search)}
+      : {}
     const queryRecords = {
       limit: req.query.limit,
       skip: req.query.skip,
     }
-    const posts = await Post.find(search).populate({
-      path: 'userId',
-      select: 'name avatar'
-    }).sort({ 'createAt': timeSort })
-      .skip(queryRecords.skip)
-      .limit(queryRecords.limit);
-    res.send({ status: true, data: posts });
+    // const posts = await Post.find(search).populate({
+    //   path: 'userId',
+    //   select: 'name avatar'
+    // }).sort({ 'createAt': timeSort })
+    //   .skip(queryRecords.skip)
+    //   .limit(queryRecords.limit);
+
+    // current user
+    const currentUser = req.user
+
+    let posts = await Post.aggregate([
+      {
+        $match: search,
+      },
+      {
+        $sort: {createAt: timeSort},
+      },
+      { $skip: Number(queryRecords.skip) || 0 },
+      { $limit: Number(queryRecords.limit) || 10 }, // default post number with 10
+      {
+        $lookup: {
+          from: 'comments',
+          localField: '_id', // post collection column
+          foreignField: 'postId', // comments collection column
+          let: {
+            userId: '$userId',
+          },
+          pipeline: [
+            {$sort: {createAt: -1}}, // comments new -> old
+            {$limit: 2},
+            {
+              $addFields: {
+                actions: {
+                  $cond: [
+                    {
+                      // Post owner can do "edit", "delete" ;
+                      // Visiter can do "hide"
+                      $eq: [
+                        '$$userId',
+                        mongoose.Types.ObjectId(currentUser._id.toString()),
+                      ],
+                    },
+                    ['edit', 'delete'],
+                    ['hide'],
+                  ],
+                },
+              },
+            },
+          ],
+          as: 'comments',
+        },
+      },
+      {
+        $lookup: {
+          from: 'Users',
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+              },
+            },
+          ],
+          as: 'userId',
+        },
+      },
+    ])
+
+    res.send({status: true, data: posts})
   }),
   getPost: handleErrorAsync(async (req, res, next) => {
     const post = await Post.find({ _id: req.params.id }).populate({
@@ -34,8 +100,8 @@ const posts = {
       userId: req.user._id,
       content: req.body.content
     };
-    if (req.files.length > 0) {
-      data.image = await Imgur.upload(req.files);
+    if (req?.files && req.files.length > 0) {
+      data.image = await Imgur.upload(req.files)
     }
     const newPost = await Post.create({
       ...data,
@@ -55,11 +121,29 @@ const posts = {
   }),
   deletePosts: handleErrorAsync(async (req, res, next) => {
     const posts = await Post.deleteMany({});
-    res.send({ status: true, data: posts });
+    const comments = await Comment.deleteMany({})
+
+    res.send({
+      status: true,
+      data: {
+        deletePost: posts,
+        deleteComments: comments,
+      },
+    })
   }),
   deletePost: handleErrorAsync(async (req, res, next) => {
-    const posts = await Post.deleteOne({ _id: req.params.id });
-    res.send({ status: true, data: posts });
+    const post = await Post.deleteOne({ _id: req.params.id });
+    const comments = await Comment.deleteMany({
+      postId: mongoose.Types.ObjectId(req.params.id),
+    })
+
+    res.send({ 
+      status: true, 
+      data: {
+        deletePost: post,
+        deleteComments: comments
+      } 
+    });
   })
 }
 

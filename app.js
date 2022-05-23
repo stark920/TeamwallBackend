@@ -20,6 +20,7 @@ const postsRouter = require('./routes/posts'); //管理Router
 const usersRouter = require('./routes/users');
 const likesRouter = require('./routes/likes');
 const chatRouter = require('./routes/chat');
+const commentRouter = require('./routes/comment')
 const app = express();
 
 app.use(logger('dev'));
@@ -33,6 +34,7 @@ app.use('/posts', postsRouter);
 app.use('/users', usersRouter);
 app.use('/likes', likesRouter);
 app.use('/chat', chatRouter);
+app.use('/comment', commentRouter)
 app.use('/api-doc', swaggerUI.serve, swaggerUI.setup(swaggerFile));
 
 app.use(function (req, res, next) {
