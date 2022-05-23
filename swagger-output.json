@@ -1671,16 +1671,86 @@
     },
     "/comment/delete/{commentId}": {
       "delete": {
-        "description": "",
+        "tags": [
+          "Comments"
+        ],
+        "summary": "刪除一則留言",
+        "description": "如為登入狀態，且為留言的擁有者，才可以刪除留言",
         "parameters": [
           {
             "name": "commentId",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "description": "留言ID"
           }
         ],
-        "responses": {}
+        "responses": {
+          "200": {
+            "description": "修改後的comment",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "example": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "_id": {
+                      "type": "string",
+                      "example": "6289f7048311166ba6134a0f"
+                    },
+                    "content": {
+                      "type": "string",
+                      "example": "測試1 - 修改過了唷!!!"
+                    },
+                    "postId": {
+                      "type": "string",
+                      "example": "62897d87b523932b81580581"
+                    },
+                    "userId": {
+                      "type": "string",
+                      "example": "6286d9983208cb01aafaa562"
+                    },
+                    "createAt": {
+                      "type": "string",
+                      "example": "2022-05-22T08:40:36.456Z"
+                    }
+                  }
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "400": {
+            "description": "回傳錯誤訊息",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "example": "fail"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "錯誤訊息"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ]
       }
     }
   }
