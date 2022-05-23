@@ -139,12 +139,17 @@ const posts = {
     const comments = await Comment.deleteMany({
       postId: mongoose.Types.ObjectId(req.params.id),
     })
-
+    const likes = await Like.updateMany({
+      $pullAll: {
+        posts: [{_id: req.params.id}],
+      }
+    })
     res.send({ 
       status: true, 
       data: {
         deletePost: post,
-        deleteComments: comments
+        deleteComments: comments,
+        deleteLikes: likes
       } 
     });
   })
