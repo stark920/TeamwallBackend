@@ -4,7 +4,7 @@ const likesControl = require('../controllers/likes');
 const { isAuth } = require('../service');
 
 // 查詢
-router.post(
+router.get(
   /**
    * #swagger.tags = ['Likes']
    * #swagger.summary = '取得某人喜愛貼文'

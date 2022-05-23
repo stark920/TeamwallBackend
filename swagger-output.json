@@ -1058,7 +1058,7 @@
       }
     },
     "/likes/": {
-      "post": {
+      "get": {
         "tags": [
           "Likes"
         ],
