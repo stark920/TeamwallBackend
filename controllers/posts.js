@@ -32,8 +32,8 @@ const posts = {
       {
         $sort: {createAt: timeSort},
       },
-      { $skip: Number(queryRecords.skip) || 0 },
-      { $limit: Number(queryRecords.limit) || 10 }, // default post number with 10
+      {$skip: Number(queryRecords.skip) || 0},
+      {$limit: Number(queryRecords.limit) || 10}, // default post number with 10
       {
         $lookup: {
           from: 'comments',
@@ -70,11 +70,14 @@ const posts = {
       {
         $lookup: {
           from: 'Users',
+          localField: 'userId', // post collection column
+          foreignField: '_id', // Users collection column
           pipeline: [
             {
               $project: {
                 _id: 1,
                 name: 1,
+                avatar: 1,
               },
             },
           ],

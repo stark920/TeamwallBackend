@@ -1,13 +1,14 @@
-const {successHandler} = require('../handler')
 const Comment = require('../models/commentModel')
 const Post = require('../models/postModel')
-const {appError, roles, handleErrorAsync} = require('../service')
+const {appError, handleErrorAsync} = require('../service')
 
 // validate postId
 const validatePostId = async (postId, next) => {
-  if(!postId) return appError(400, '查無此postId', next)
+  if (!postId || postId.toString().length !== 24) {
+    return appError(400, '查無此postId', next)
+  }
 
-  const post = await Post.find({_id: postId})
+  const post = await Post.findById(postId)
   if (!post) {
     return appError(400, '查無此postId', next)
   }
@@ -44,7 +45,7 @@ const commentController = {
     const post = await validatePostId(postId, next)
 
     const currentUserId = currentUser._id.toString()
-    const ownerId = post[0].userId.toString()
+    const ownerId = post.userId.toString()
 
     // get comments
     const start = Number(req.query.start)
@@ -67,15 +68,16 @@ const commentController = {
     // validate comment actions
     commentData = await validateCommentActions(currentUserId, ownerId, commentData)
     
-    successHandler(res, commentData)
+    res.send({status: true, data: commentData})
   }),
   postComments: handleErrorAsync(async (req, res, next) => {
     // current user
     const currentUser = req.user
 
     // validate comments query body
-    const data = req.body
-    if (!roles.checkBody('comment', data, next)) return
+    const {content} = req.body
+    if (content === undefined) return appError(400, '需要 content 欄位', next)
+    if (content === '') return appError(400, 'content 不能為空值', next)
 
     // validate postId
     const postId = req.params.postId
@@ -83,12 +85,12 @@ const commentController = {
 
     // create comment
     const newComment = await Comment.create({
-      ...data,
+      content,
       userId: currentUser,
       postId,
     })
 
-    successHandler(res, newComment)
+    res.send({status: true, data: newComment})
   }),
   patchComment: handleErrorAsync(async (req, res, next) => {
     // current user
@@ -116,7 +118,7 @@ const commentController = {
       {returnDocument: 'after'}
     )
 
-    successHandler(res, updateComment)
+    res.send({status: true, data: updateComment})
   }),
   deleteComment: handleErrorAsync(async (req, res, next) => {
     // current user
@@ -135,7 +137,7 @@ const commentController = {
 
     const deleteComment = await Comment.deleteOne({_id: commentId})
 
-    successHandler(res, deleteComment)
+    res.send({status: true, data: deleteComment})
   }),
 }
 
