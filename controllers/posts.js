@@ -77,6 +77,7 @@ const posts = {
               $project: {
                 _id: 1,
                 name: 1,
+                avatar: 1,
               },
             },
           ],

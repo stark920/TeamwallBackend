@@ -85,7 +85,7 @@ const commentController = {
 
     // create comment
     const newComment = await Comment.create({
-      ...data,
+      content,
       userId: currentUser,
       postId,
     })
