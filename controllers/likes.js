@@ -2,6 +2,7 @@ const Post = require('../models/postModel');
 const Like = require('../models/likesModel');
 const handleErrorAsync = require("../service/handleErrorAsync");
 const appError = require("../service/appError");
+const mongoose = require('mongoose');
 
 const likes = {
   getLikes:handleErrorAsync(
@@ -39,8 +40,16 @@ const likes = {
       if(!data.posts ){
         return next(appError(400,"你沒有輸入喜愛多文章",next))
       }
+      if(mongoose.Types.ObjectId.isValid(data.posts)){
+        const post = await Post.findOne({"_id": data.posts})
+        if(!post ){
+          return next(appError(400,"沒有此文章",next))
+        }
+      }else{
+        return next(appError(400,"文章ID格式錯誤",next))
+      }
+
       const user = await Like.findOne({"userId": data.userId})
-  
       if(user){
         if(user.posts.includes(data.posts)){ //移除
           const postsIndex = user.posts.indexOf(data.posts)
