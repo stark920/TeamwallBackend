@@ -49,6 +49,13 @@ module.exports = function (server) {
       .adapter.rooms.get("62863bf54025f20e3d376b34");
     // console.log('io.sockets.adapter.rooms', io.of('/chat').adapter.rooms);
     // console.log('io.sockets.adapter.rooms.has(roomIdentifier)', io.of('/chat').adapter.rooms.has('62863bf54025f20e3d376b34'));
+    socket.use(([ event, payload ], next) => {
+      console.log("payload", payload);
+      if (payload?.message?.length > 100) {
+        return next(new Error("您輸入的內容過長"));
+      }
+      next();
+    });
     console.log("clients", clients);
     // 監聽 client發來的訊息
     socket.on("chatMessage", async (msg) => {
@@ -113,9 +120,8 @@ module.exports = function (server) {
       socket.leave(room);
     });
     //錯誤處理
-    socket.on("error", function (err) {
-      // do something with err
-      socket.emit("error", err);
+    socket.on("error", (err) => {
+      socket.emit("error", err.message);
     });
     //斷開連接
     socket.on("disconnect", (socket) => {
