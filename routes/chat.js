@@ -30,7 +30,7 @@ router.post(
     //已經有聊天記錄就直接回傳id
     if (receiverRecord) {
       res.status(200).json({
-        status: "success",
+        status: true,
         roomId,
         userName, 
         avatar,
@@ -48,7 +48,7 @@ router.post(
         $push: { chatRecord: { roomId: newRoom._id, receiver: sender } },
       });
       res.status(200).json({
-        status: "success",
+        status: true,
         roomId: newRoom._id,
         userName, 
         avatar,
@@ -150,7 +150,7 @@ router.post(
     ]);
     res
       .status(200)
-      .json({ status: "success", chatRecord: queryResult?.chatRecord });
+      .json({ status: true, chatRecord: queryResult?.chatRecord });
   })
 );
 
