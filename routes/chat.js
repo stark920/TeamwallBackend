@@ -25,19 +25,22 @@ router.post(
       queryResult?.chatRecord.find(
         (item) => item.receiver.toString() === receiver
       ) || {};
-    const receiverUser = await User.findById(receiver)
-    const { userName, avatar, _id } = receiverUser
+    const receiverUser = await User.findById(receiver);
+    if (!receiverUser) {
+      return next(appError(400, "沒有這個人喔", next));
+    }
+    const { name, avatar, _id } = receiverUser;
     //已經有聊天記錄就直接回傳id
     if (receiverRecord) {
       res.status(200).json({
         status: true,
         roomId,
-        userName, 
+        name,
         avatar,
-        _id
+        _id,
       });
     } else {
-    //沒有聊天記錄就新建房間
+      //沒有聊天記錄就新建房間
       const newRoom = await ChatRoom.create({
         members: [ObjectId(sender), ObjectId(receiver)],
       });
@@ -50,9 +53,9 @@ router.post(
       res.status(200).json({
         status: true,
         roomId: newRoom._id,
-        userName, 
+        name,
         avatar,
-        _id
+        _id,
       });
     }
   })
@@ -84,14 +87,13 @@ router.get("/all", async (req, res, next) => {
   res.status(200).json({ message: "success", chatRecord: chatRecord });
 });
 
-
 //取得聊天記錄
 router.post(
   "/chat-record",
   isAuth,
   handleErrorAsync(async (req, res, next) => {
-    console.log('user._id', req.user._id);
-    const [ queryResult ] = await User.aggregate([
+    console.log("user._id", req.user._id);
+    const [queryResult] = await User.aggregate([
       { $match: { _id: req.user._id } },
       {
         $project: { chatRecord: 1 },
@@ -145,12 +147,15 @@ router.post(
         },
       },
       {
-        $project: { "chatRecord.password": 0, "chatRecord.email": 0, "chatRecord.createdAt": 0, 'chatRecord.chatRecord':0},
+        $project: {
+          "chatRecord.password": 0,
+          "chatRecord.email": 0,
+          "chatRecord.createdAt": 0,
+          "chatRecord.chatRecord": 0,
+        },
       },
     ]);
-    res
-      .status(200)
-      .json({ status: true, chatRecord: queryResult?.chatRecord });
+    res.status(200).json({ status: true, chatRecord: queryResult?.chatRecord });
   })
 );
 
