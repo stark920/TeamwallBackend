@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "cross-env node ./bin/www",
-    "start:dev": "cross-env NODE_ENV=dev node ./bin/www",
-    "start:pro": "cross-env NODE_ENV=production node ./bin/www",
+    "start": "node ./bin/www",
+    "start:dev": "NODE_ENV=dev node ./bin/www",
+    "start:pro": "NODE_ENV=production node ./bin/www",
     "dev": "nodemon ./bin/www",
     "swagger": "node ./swagger.js"
   },
