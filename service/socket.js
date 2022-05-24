@@ -120,9 +120,8 @@ module.exports = function (server) {
       socket.leave(room);
     });
     //錯誤處理
-    socket.on("error", function (err) {
-      // do something with err
-      socket.emit("error", err);
+    socket.on("error", (err) => {
+      socket.emit("error", err.message);
     });
     //斷開連接
     socket.on("disconnect", (socket) => {
