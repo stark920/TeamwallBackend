@@ -84,6 +84,7 @@ const posts = {
           as: 'userId',
         },
       },
+      {$unwind: '$userId'},
     ])
 
     res.send({status: true, data: posts})
