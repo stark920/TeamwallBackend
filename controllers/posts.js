@@ -7,7 +7,7 @@ const mongoose = require('mongoose')
 
 const posts = {
   getPosts: handleErrorAsync(async (req, res, next) => {
-    const timeSort = req.query.timeSort == 'asc' ? 1 : -1
+    const timeSort = req.query.timeSort == 'old' ? 1 : -1
     const search = req.query.search
       ? {content: new RegExp(req.query.search)}
       : {}
@@ -30,7 +30,7 @@ const posts = {
         $match: search,
       },
       {
-        $sort: {createAt: timeSort},
+        $sort: {createdAt: timeSort},
       },
       {$skip: Number(queryRecords.skip) || 0},
       {$limit: Number(queryRecords.limit) || 10}, // default post number with 10

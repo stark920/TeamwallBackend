@@ -18,7 +18,7 @@ const postsSchema = new mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: 'user',
   }],
-  createAt: {
+  createdAt: {
     type: Date,
     default: Date.now,
     select: true,
