@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userValidator = require('../validates/users');
 const userControl = require('../controllers/users');
+const passport = require('passport');
 const { isAuth, upload } = require('../service');
 const cors = require('cors');
 
@@ -217,6 +218,16 @@ router.patch(
   userControl.updatePassword
 );
 
+// client端戳這支觸發google登入
+router.get('/google', passport.authenticate('google', {
+  scope: ['email', 'profile']
+}));
+
+// google登入後callback這支，回傳資料給client端
+router.get('/google/callback', passport.authenticate('google', {
+  session: false,
+}), userControl.google);
+
 // 取得指定用戶資訊
 router.get(
   /**
@@ -297,5 +308,7 @@ router.delete(
   isAuth,
   userControl.deleteFollow
 );
+
+
 
 module.exports = router;
