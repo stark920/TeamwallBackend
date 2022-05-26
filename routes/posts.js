@@ -16,7 +16,7 @@ router.get(
     }
    * #swagger.parameters['timeSort'] = {
       in: 'query',
-      description: 'timeSort=asc (舊到新) or 不填寫 (新到舊)',
+      description: 'timeSort=old (舊到新) or 不填寫 (新到舊)',
     }
    * #swagger.parameters['skip'] = {
       in: 'query',
@@ -43,7 +43,7 @@ router.get(
               "content": "我只是個測試唷!",
               "likes": [],
               "image": [],
-              "createAt": "2022-05-22T10:05:30.803Z",
+              "createdAt": "2022-05-22T10:05:30.803Z",
               "comments": [
                 {
                   "_id": "628a0c089acb6cb7d6b70da6",
