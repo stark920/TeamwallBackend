@@ -37,7 +37,7 @@
           {
             "name": "timeSort",
             "in": "query",
-            "description": "timeSort=asc (舊到新) or 不填寫 (新到舊)",
+            "description": "timeSort=old (舊到新) or 不填寫 (新到舊)",
             "type": "string"
           },
           {
@@ -102,7 +102,7 @@
                         "example": [],
                         "items": {}
                       },
-                      "createAt": {
+                      "createdAt": {
                         "type": "string",
                         "example": "2022-05-22T10:05:30.803Z"
                       },
@@ -127,7 +127,7 @@
                               "type": "string",
                               "example": "6286d9983208cb01aafaa562"
                             },
-                            "createAt": {
+                            "createdAt": {
                               "type": "string",
                               "example": "2022-05-22T10:10:10.792Z"
                             },
@@ -1417,7 +1417,7 @@
                           }
                         }
                       },
-                      "createAt": {
+                      "createdAt": {
                         "type": "string",
                         "example": "2022-05-22T10:10:16.925Z"
                       },
@@ -1532,7 +1532,7 @@
                       "type": "string",
                       "example": "628a0c089acb6cb7d6b70da6"
                     },
-                    "createAt": {
+                    "createdAt": {
                       "type": "string",
                       "example": "2022-05-22T10:10:16.925Z"
                     }
@@ -1630,7 +1630,7 @@
                       "type": "string",
                       "example": "6286d9983208cb01aafaa562"
                     },
-                    "createAt": {
+                    "createdAt": {
                       "type": "string",
                       "example": "2022-05-22T08:40:36.456Z"
                     }
@@ -1714,7 +1714,7 @@
                       "type": "string",
                       "example": "6286d9983208cb01aafaa562"
                     },
-                    "createAt": {
+                    "createdAt": {
                       "type": "string",
                       "example": "2022-05-22T08:40:36.456Z"
                     }

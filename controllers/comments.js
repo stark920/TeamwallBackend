@@ -50,7 +50,7 @@ const commentController = {
     // get comments
     const start = Number(req.query.start)
     const limit = Number(req.query.limit)
-    const timeSort = req.query.timeSort == 'asc' ? 1 : -1
+    const timeSort = req.query.timeSort == 'old' ? 1 : -1
     let commentData = await Comment.find({postId})
       .populate({
         path: 'userId',
@@ -60,7 +60,7 @@ const commentController = {
         },
       })
       .sort({
-        createAt: timeSort,
+        createdAt: timeSort,
       })
       .skip(start)
       .limit(limit)

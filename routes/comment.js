@@ -38,7 +38,7 @@ router.get(
                 "_id": "6286d9983208cb01aafaa562",
                 "name": "Meme",
               },
-              "createAt": "2022-05-22T10:10:16.925Z",
+              "createdAt": "2022-05-22T10:10:16.925Z",
               "actions": [
                 "delete",
                 "edit",
@@ -85,7 +85,7 @@ router.post(
               "chatRecord": []
             },
             "_id": "628a0c089acb6cb7d6b70da6",
-            "createAt": "2022-05-22T10:10:16.925Z"
+            "createdAt": "2022-05-22T10:10:16.925Z"
           }
         }
       }
@@ -128,7 +128,7 @@ router.patch(
             "content": "測試1 - 修改過了唷!!!",
             "postId": "62897d87b523932b81580581",
             "userId": "6286d9983208cb01aafaa562",
-            "createAt": "2022-05-22T08:40:36.456Z"
+            "createdAt": "2022-05-22T08:40:36.456Z"
           }
         }
       }
@@ -164,7 +164,7 @@ router.delete(
             "content": "測試1 - 修改過了唷!!!",
             "postId": "62897d87b523932b81580581",
             "userId": "6286d9983208cb01aafaa562",
-            "createAt": "2022-05-22T08:40:36.456Z"
+            "createdAt": "2022-05-22T08:40:36.456Z"
           }
         }
       }
