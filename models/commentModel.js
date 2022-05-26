@@ -16,7 +16,7 @@ const commentsSchema = new mongoose.Schema(
       // select: false,
       required: [true, '請輸入您的userId'],
     },
-    createAt: {
+    createdAt: {
       type: Date,
       default: Date.now,
       select: true,
