@@ -14,7 +14,9 @@ process.on('uncaughtException', err => {
 });
 
 // 連線 mongodb
-require('./connections');
+require('./connections/mongodb');
+// Google 登入
+require('./connections/passport')
 
 const postsRouter = require('./routes/posts'); //管理Router
 const usersRouter = require('./routes/users');

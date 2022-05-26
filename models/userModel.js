@@ -60,7 +60,10 @@ const userSchema = new mongoose.Schema(
           default: Date.now
         }
       }
-    ]
+    ],
+    googleId: {
+      type: String
+    }
   },
   {
     versionKey: false,
