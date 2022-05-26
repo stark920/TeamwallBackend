@@ -50,7 +50,7 @@ router.get(
                   "content": "我只是個測試唷 - 回應4",
                   "postId": "628a0aea9acb6cb7d6b70d93",
                   "userId": "6286d9983208cb01aafaa562",
-                  "createAt": "2022-05-22T10:10:16.925Z",
+                  "createdAt": "2022-05-22T10:10:16.925Z",
                   "actions": [
                     "edit",
                     "delete"
@@ -61,7 +61,7 @@ router.get(
                   "content": "我只是個測試唷 - 回應3",
                   "postId": "628a0aea9acb6cb7d6b70d93",
                   "userId": "6286d9983208cb01aafaa562",
-                  "createAt": "2022-05-22T10:10:10.792Z",
+                  "createdAt": "2022-05-22T10:10:10.792Z",
                   "actions": [
                     "edit",
                     "delete"
