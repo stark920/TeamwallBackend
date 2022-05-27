@@ -58,11 +58,11 @@ const generateSendJWT = (user, statusCode, res) => {
 };
 
 // 第三方登入 回傳轉址
-const generateUrlJWT = (user, host, res) => {
+const generateUrlJWT = (user, res) => {
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_DAY,
   });
-  const path = `${host}TeamWall/#/callback?token=${token}&id=${user._id}&name=${user.name}&avatar=${user.avatar.url}&gender=${user.gender}`;
+  const path = `/TeamWall/#/callback?token=${token}&id=${user._id}&name=${user.name}&avatar=${user.avatar.url}&gender=${user.gender}`;
   res.redirect(path);
 };
 
