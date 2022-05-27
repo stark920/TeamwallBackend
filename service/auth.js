@@ -8,10 +8,13 @@ dotenv.config({ path: '../config.env' });
 // 檢查 token
 const isAuth = handleErrorAsync(async (req, res, next) => {
   let token;
+
   const authorization = req.headers?.authorization;
+
   if (authorization && authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
   }
+
   if (!token) {
     return appError(401, '您尚未登入', next);
   }
@@ -22,9 +25,13 @@ const isAuth = handleErrorAsync(async (req, res, next) => {
     });
   });
 
-  const currentUser = await User.findById(decodedToken.id).select('+isLogin');
+  const currentUser = await User.findById(decodedToken.id).select('+isLogin +activeStatus');
 
-  if (!currentUser.isLogin) appError(401, '請重新登入', next);
+  if (!currentUser) return appError(401, '此帳號無法使用，請聯繫管理員', next);
+
+  if (currentUser.activeStatus === 'none') return appError(401, '帳號尚未啟用', next);
+
+  if (!currentUser.isLogin) return appError(401, '請重新登入', next);
 
   req.user = currentUser;
 
@@ -38,12 +45,14 @@ const generateSendJWT = (user, statusCode, res) => {
   });
 
   res.set('Authorization', 'Bearer ' + token);
+
   res.status(statusCode).send({
     status: true,
     user: {
-      id: req.user._id,
-      name: req.user.name,
-      avatar: req.user.avatar,
+        id: user._id,
+        name: user.name,
+        avatar: user.avatar.url,
+        gender: user.gender
     },
   });
 };
@@ -53,7 +62,7 @@ const generateUrlJWT = (user, host, res) => {
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_DAY,
   });
-  const path = `${host}TeamWall/#/callback?token=${token}&id=${user._id}&name=${user.name}&avatar=${user.avatar.url}`;
+  const path = `${host}TeamWall/#/callback?token=${token}&id=${user._id}&name=${user.name}&avatar=${user.avatar.url}&gender=${user.gender}`;
   res.redirect(path);
 };
 

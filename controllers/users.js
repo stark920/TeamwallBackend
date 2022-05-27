@@ -1,60 +1,152 @@
+const User = require('../models/userModel');
+const {
+  appError,
+  handleErrorAsync,
+  generateSendJWT,
+  generateUrlJWT,
+} = require('../service');
 const bcrypt = require('bcrypt');
 const { validationResult } = require('express-validator');
 const Imgur = require('../utils/imgur');
-const User = require('../models/userModel');
-const { appError, handleErrorAsync, generateSendJWT, generateUrlJWT } = require('../service');
+const jwt = require('jsonwebtoken');
+const sendMail = require('../service/email');
+const path = require('path');
 const uuid = require('uuid');
 
-
 const user = {
+  // 檢查token
   check: handleErrorAsync(async (req, res, next) => {
-    if (!req.user) return appError(401, '此帳號無法使用，請聯繫管理員', next);
+    // isAuth通過就可以直接回傳資料
     res.send({
       status: true,
       data: {
         id: req.user._id,
         name: req.user.name,
-        avatar: req.user.avatar,
+        avatar: req.user.avatar.url,
+        gender: req.user.gender,
       },
     });
   }),
+  // 登入
   signIn: handleErrorAsync(async (req, res, next) => {
+    // 資料檢查錯誤處理
     const { errors } = validationResult(req);
-    if (errors.length > 0) return appError(401, '輸入資料錯誤', next);
-    const { email, password } = req.body;
-    const user = await User.findOne({ email }).select('+password +isLogin');
-    if (!user) return appError(401, '信箱或密碼錯誤', next);
+    if (errors.length > 0) return appError(400, '輸入資料錯誤', next);
 
+    const { email, password } = req.body;
+
+    // 取得帳號的密碼和啟用狀態
+    const user = await User.findOne({ email }).select(
+      '+password +activeStatus'
+    );
+
+    // 錯誤處理
+    if (!user) return appError(401, '信箱或密碼錯誤', next);
+    if (user.activeStatus === 'none' || user.activeStatus === 'third')
+      return appError(401, '尚未啟用一般登入', next);
     const result = await bcrypt.compare(password, user.password);
     if (!result) return appError(401, '信箱或密碼錯誤', next);
 
+    // 更新帳號為登入狀態並發送token
     await User.findByIdAndUpdate(user._id, { isLogin: true });
-
     generateSendJWT(user, 200, res);
   }),
+  // 登出
   signOut: handleErrorAsync(async (req, res, next) => {
-    if (!req.user) return appError(401, '帳號異常，請聯繫管理員', next);
-
+    // 更新帳號為登出狀態
     await User.findByIdAndUpdate(req.user._id, { isLogin: false });
-
     res.send({ status: true, message: '登出成功' });
   }),
+  // 註冊
   signUp: handleErrorAsync(async (req, res, next) => {
+    // 資料檢查錯誤處理
     const { errors } = validationResult(req);
-    if (errors.length > 0) return appError(422, '輸入資料有誤', next);
+    if (errors.length > 0) return appError(400, '輸入資料有誤', next);
 
     const { email, name } = req.body;
-    const emailIsUsed = await User.find({ email });
-    if (emailIsUsed.length > 0) return appError(422, '信箱已被使用', next);
+    // 檢查信箱是否存在 檢查會員總量是否超過
+    const user = await User.findOne({ email }).select('+activeStatus');
+    const limit = await User.count();
+    if (!user && limit >= 500) {
+      return appError(422, '會員數量已達上限', next);
+    }
+    if (
+      user &&
+      (user.activeStatus === 'meta' || user.activeStatus === 'both')
+    ) {
+      return appError(422, '信箱已被使用', next);
+    }
 
+    // 製作信件內容並發送
+    const activeCode = jwt.sign({ email, name }, process.env.JWT_SECRET, {
+      expiresIn: '1d',
+    });
+    const mail = {
+      from: 'MetaWall <metawall001@gmail.com>',
+      subject: '[MetaWall]帳號啟用確認信',
+      to: email,
+      text: `尊敬的 ${name} 您好！點選連結即可啟用您的 MetaWall 帳號，[http://localhost:3007/users/checkCode?code=${activeCode}] 為保障您的帳號安全，請在24小時內點選該連結，您也可以將連結複製到瀏覽器位址列訪問。`,
+    };
+    const result = await sendMail(mail);
+
+    // 確認寄送是否成功
+    if (!result.startsWith('250 2.0.0 OK')) {
+      return appError(422, '寄送確認信件失敗，請嘗試其他信箱', next);
+    }
+
+    // 沒帳號>建立新帳號 有帳號>更新密碼
     const password = await bcrypt.hash(req.body.password, 12);
-    await User.create({ email, password, name });
+    if (!user) {
+      await User.create({ email, password, name });
+    } else {
+      await User.findByIdAndUpdate(user._id, { password });
+    }
 
-    res.send({ status: true, message: '註冊成功' });
+    res.send({ status: true, message: '已將啟用確認信件寄送至您的信箱' });
   }),
-  updateProfile: handleErrorAsync(async (req, res, next) => {
-    if (!req.user) return appError(401, '此帳號無法使用，請聯繫管理員', next);
+  // 帳號啟用檢查
+  checkCode: handleErrorAsync(async (req, res, next) => {
+    // 解析token
+    const decodedToken = await new Promise((resolve, reject) => {
+      jwt.verify(req.query.code, process.env.JWT_SECRET, (error, payload) => {
+        error
+          ? res.sendFile(
+              path.join(__dirname, '../public/emailCheckFailed.html')
+            )
+          : resolve(payload);
+      });
+    });
 
+    // 取得註冊的資料
+    const user = await User.findOne({
+      email: decodedToken.email,
+    }).select('+activeStatus');
+    // 再次確認
+    if (!user) {
+      res.sendFile(path.join(__dirname, '../public/emailCheckFailed.html'));
+      return;
+    }
+
+    // 更新啟用狀態
+    let activeStatus;
+    if (user.activeStatus === 'none') {
+      activeStatus = 'meta';
+    } else if (user.activeStatus === 'third') {
+      activeStatus = 'both';
+    } else {
+      // 已經啟用
+      res.sendFile(path.join(__dirname, '../public/emailCheckFailed.html'));
+      return;
+    }
+    await User.findByIdAndUpdate(user._id, {
+      name: decodedToken.name,
+      activeStatus,
+    });
+
+    res.sendFile(path.join(__dirname, '../public/emailCheckSuccess.html'));
+  }),
+  // 修改個人資料
+  updateProfile: handleErrorAsync(async (req, res, next) => {
     let avatar;
     if (req.file) {
       if (req.user.avatar?.deleteHash) {
@@ -64,7 +156,7 @@ const user = {
       avatar = images[0];
     }
 
-    const data = await User.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
       req.user._id,
       {
         name: req.body.name,
@@ -72,28 +164,38 @@ const user = {
       },
       { new: true }
     );
+
+    const data = {
+      id: user._id,
+      name: user.name,
+      avatar: user.avatar.url,
+      gender: user.gender,
+    };
     res.send({ status: true, data });
   }),
+  // 修改密碼
   updatePassword: handleErrorAsync(async (req, res, next) => {
     const { errors } = validationResult(req);
     if (errors.length > 0) return appError(422, '輸入資料有誤', next);
-
-    if (!req.user) return appError(401, '此帳號無法使用，請聯繫管理員', next);
 
     const password = await bcrypt.hash(req.body.password, 12);
     await User.findByIdAndUpdate(req.user._id, { password });
     res.send({ status: true, message: '修改成功' });
   }),
+  // 取得個人資料
   getProfile: handleErrorAsync(async (req, res, next) => {
     const { errors } = validationResult(req);
     if (errors.length > 0) return appError(422, '輸入資料有誤', next);
 
-    const user = await User.findById(req.params.id).select(
-      '-avatar.deleteHash -avatar._id'
-    );
+    const user = await User.findById(req.params.id);
     if (!user) return appError(401, '查無該用戶資訊', next);
-
-    res.send({ status: true, data: user });
+    const data = {
+      id: user._id,
+      name: user.name,
+      avatar: user.avatar.url,
+      gender: user.gender,
+    };
+    res.send({ status: true, data });
   }),
   // ＊＊＊測試用＊＊＊ 取得所有會員資料
   getAllUsers: handleErrorAsync(async (req, res, next) => {
@@ -144,29 +246,48 @@ const user = {
     );
     res.send({ status: true, message: '已取消追蹤' });
   }),
+  // 第三方登入（google）
   google: handleErrorAsync(async (req, res, next) => {
-    const userData = req.user;
-    // 檢查是否存在
-    const userExisted = await User.findOne({ googleId: userData.sub });
+    const { sub, email, name, picture } = req.user;
+    // 先檢查email是否存在
+    const userExisted = await User.findOne({ email }).select(
+      '+googleId +activeStatus'
+    );
+    const limit = await User.count();
+    if (!userExisted && limit >= 500) {
+      res.sendFile(path.join(__dirname, '../public/emailCheckSuccess.html'));
+      return;
+    }
 
     let user;
     // 更新登入狀態或建立使用者資料
     if (userExisted) {
-      await User.updateOne({ googleId: userData.sub }, { isLogin: true });
+      let data;
+      if (userExisted.googleId) {
+        data = { isLogin: true };
+      }
+      if (!userExisted.googleId && userExisted.activeStatus === 'none') {
+        data = { isLogin: true, googleId: sub, activeStatus: 'third' };
+      }
+      if (!userExisted.googleId && userExisted.activeStatus === 'meta') {
+        data = { isLogin: true, googleId: sub, activeStatus: 'both' };
+      }
+      await User.updateOne({ email }, data);
       user = userExisted;
     } else {
       const new_uuid = await uuid.v4();
       const password = await bcrypt.hash(new_uuid, 12);
       const createData = {
-        googleId: userData.sub,
-        email: userData.email,
-        name: userData.name,
+        googleId: sub,
+        email: email,
+        name: name,
         avatar: {
           deleteHash: '',
-          url: userData.picture,
+          url: picture,
         },
         password,
-        isLogin: true
+        isLogin: true,
+        activeStatus: 'third',
       };
       user = await User.create(createData);
     }

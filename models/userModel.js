@@ -2,10 +2,6 @@ const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema(
   {
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
     name: {
       type: String,
       required: true,
@@ -24,18 +20,19 @@ const userSchema = new mongoose.Schema(
     },
     avatar: {
       type: {
+        _id: false,
         deleteHash: String,
         url: String,
       },
+      default: {
+        deleteHash: '',
+        url: 'https://i.imgur.com/gA5JWK5.png',
+      }
     },
     gender: {
       type: String,
       enum: ['male', 'female', 'others'],
-    },
-    isLogin: {
-      type: Boolean,
-      default: false,
-      select: false,
+      default: 'others',
     },
     chatRecord: {
       type: [
@@ -57,13 +54,30 @@ const userSchema = new mongoose.Schema(
         user: { type: mongoose.Schema.ObjectId, ref: 'User' },
         createdAt: {
           type: Date,
-          default: Date.now
-        }
-      }
+          default: Date.now,
+        },
+      },
     ],
     googleId: {
-      type: String
-    }
+      type: String,
+      select: false,
+    },
+    isLogin: {
+      type: Boolean,
+      default: false,
+      select: false,
+    },
+    activeStatus: {
+      type: String,
+      enum: ['none', 'meta', 'third', 'both'],
+      default: 'none',
+      select: false,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+      select: false,
+    },
   },
   {
     versionKey: false,

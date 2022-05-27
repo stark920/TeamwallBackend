@@ -1,0 +1,48 @@
+<html>
+
+<head>
+  <title>MetaWall - Active Failed</title>
+  <style>
+    body {
+      background-image: linear-gradient(#9b9893 1px, transparent 0px),
+        linear-gradient(90deg, #9b9893 1px, transparent 0px);
+      background-size: 4em 4em;
+      background-color: #efece7;
+    }
+    .container {
+      width: 80%;
+      margin: 4rem auto;
+      border: 2px solid #000040;
+      border-radius: 16px;
+      background-color: #fff;
+      text-align: center;
+      padding: 2rem;
+      box-shadow: 0px 3px 0px #000400;
+    }
+    .warn {
+      color: #F57375;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <strong>帳號啟用結果</strong>
+    <p>此註冊碼<span class="warn">已失效</span>，請點擊以下連結重新註冊，或是 <span class="js-time"></span> 秒後自動跳轉</p>
+    <a href="https://stark920.github.io/TeamWall/#/sign-up">MetaWall</a>
+  </div>
+  <script>
+    let count = 5;
+    const counter = document.querySelector('.js-time');
+    counter.textContent = count;
+    window.setInterval(function(){
+      count -= 1;
+      counter.textContent = count;
+      if (count === 0) {
+        window.location.replace('https://stark920.github.io/TeamWall/#/sign-up')
+      }
+    }, 1000)
+  </script>
+</body>
+
+</html>

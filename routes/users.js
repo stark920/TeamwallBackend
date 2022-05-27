@@ -134,6 +134,8 @@ router.post(
   userControl.signUp
 );
 
+router.get('/checkCode', userControl.checkCode);
+
 // 更新使用者資料
 router.patch(
   /**
