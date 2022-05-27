@@ -94,10 +94,12 @@ const user = {
       return appError(422, '寄送確認信件失敗，請嘗試其他信箱', next);
     }
 
-    // 沒帳號>建立新帳號
+    // 沒帳號>建立新帳號 有帳號>更新密碼
+    const password = await bcrypt.hash(req.body.password, 12);
     if (!user) {
-      const password = await bcrypt.hash(req.body.password, 12);
       await User.create({ email, password, name });
+    } else {
+      await User.findByIdAndUpdate(user._id, { password });
     }
 
     res.send({ status: true, message: '已將啟用確認信件寄送至您的信箱' });
@@ -117,7 +119,6 @@ const user = {
 
     // 取得註冊的資料
     const user = await User.findOne({
-      name: decodedToken.name,
       email: decodedToken.email,
     }).select('+activeStatus');
     // 再次確認
@@ -137,7 +138,10 @@ const user = {
       res.sendFile(path.join(__dirname, '../public/emailCheckFailed.html'));
       return;
     }
-    await User.findByIdAndUpdate(user._id, { activeStatus });
+    await User.findByIdAndUpdate(user._id, {
+      name: decodedToken.name,
+      activeStatus,
+    });
 
     res.sendFile(path.join(__dirname, '../public/emailCheckSuccess.html'));
   }),
