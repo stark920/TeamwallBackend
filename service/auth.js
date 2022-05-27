@@ -49,10 +49,10 @@ const generateSendJWT = (user, statusCode, res) => {
   res.status(statusCode).send({
     status: true,
     user: {
-        id: req.user._id,
-        name: req.user.name,
-        avatar: req.user.avatar.url,
-        gender: req.user.gender
+        id: user._id,
+        name: user.name,
+        avatar: user.avatar.url,
+        gender: user.gender
     },
   });
 };
