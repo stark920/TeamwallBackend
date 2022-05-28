@@ -19,8 +19,8 @@ passport.use(
 passport.use(
   new FacebookStrategy(
     {
-      clientID: FACEBOOK_CLIENT_ID,
-      clientSecret: FACEBOOK_CLIENT_SECRET,
+      clientID: process.env.FACEBOOK_CLIENT_ID,
+      clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
       callbackURL: 'https://secret-scrubland-17327.herokuapp.com/users/facebook/callback',
     },
     function (accessToken, refreshToken, profile, cb) {
