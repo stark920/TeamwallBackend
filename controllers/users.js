@@ -17,13 +17,14 @@ const user = {
   // 檢查token
   check: handleErrorAsync(async (req, res, next) => {
     // isAuth通過就可以直接回傳資料
+    const { _id, name, avatar, gender } = req.user;
     res.send({
       status: true,
       data: {
-        id: req.user._id,
-        name: req.user.name,
-        avatar: req.user.avatar.url,
-        gender: req.user.gender,
+        id: _id,
+        name,
+        avatar: avatar.url,
+        gender,
       },
     });
   }),
@@ -85,7 +86,7 @@ const user = {
       from: 'MetaWall <metawall001@gmail.com>',
       subject: '[MetaWall]帳號啟用確認信',
       to: email,
-      text: `尊敬的 ${name} 您好！點選連結即可啟用您的 MetaWall 帳號，[http://localhost:3007/users/checkCode?code=${activeCode}] 為保障您的帳號安全，請在24小時內點選該連結，您也可以將連結複製到瀏覽器位址列訪問。`,
+      text: `尊敬的 ${name} 您好！點選連結即可啟用您的 MetaWall 帳號，[https://secret-scrubland-17327.herokuapp.com/users/checkCode?code=${activeCode}] 為保障您的帳號安全，請在24小時內點選該連結，您也可以將連結複製到瀏覽器位址列訪問。`,
     };
     const result = await sendMail(mail);
 
@@ -160,6 +161,7 @@ const user = {
       req.user._id,
       {
         name: req.body.name,
+        gender: req.body?.gender,
         avatar,
       },
       { new: true }
@@ -189,22 +191,16 @@ const user = {
 
     const user = await User.findById(req.params.id);
     if (!user) return appError(401, '查無該用戶資訊', next);
+
+    const { _id, name, avatar, gender, followers } = user;
     const data = {
-      id: user._id,
-      name: user.name,
-      avatar: user.avatar.url,
-      gender: user.gender,
+      id: _id,
+      name,
+      avatar: avatar.url,
+      gender,
+      followers,
     };
     res.send({ status: true, data });
-  }),
-  // ＊＊＊測試用＊＊＊ 取得所有會員資料
-  getAllUsers: handleErrorAsync(async (req, res, next) => {
-    const users = await User.find().select('+password +isLogin');
-    res.send({ status: true, data: users });
-  }),
-  delAllUsers: handleErrorAsync(async (req, res, next) => {
-    const users = await User.deleteMany({});
-    res.send({ status: true, data: users });
   }),
   getFollows: handleErrorAsync(async (req, res, next) => {
     const list = await User.find({
@@ -215,6 +211,7 @@ const user = {
     });
     res.send({ status: true, data: list });
   }),
+  // 追蹤用戶
   postFollow: handleErrorAsync(async (req, res, next) => {
     if (req.params.id === req.user.id) {
       return appError(401, '無法追蹤自己', next);
@@ -231,6 +228,7 @@ const user = {
     );
     res.send({ status: true, message: '已成功追蹤' });
   }),
+  // 退追用戶
   deleteFollow: handleErrorAsync(async (req, res, next) => {
     if (req.params.id === req.user.id) {
       return appError(401, '無法取消追蹤自己', next);
@@ -291,7 +289,7 @@ const user = {
       };
       user = await User.create(createData);
     }
-    generateUrlJWT(user, req.headers.referer, res);
+    generateUrlJWT(user, res);
   }),
 };
 

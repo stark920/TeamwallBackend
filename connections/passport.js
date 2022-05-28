@@ -6,7 +6,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: 'http://localhost:3007/users/google/callback',
+      callbackURL: 'https://secret-scrubland-17327.herokuapp.com/users/google/callback',
     },
     function (accessToken, refreshToken, profile, cb) {
       return cb(null, profile._json)
