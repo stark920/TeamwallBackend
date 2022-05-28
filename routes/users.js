@@ -232,7 +232,7 @@ router.get('/google/callback', passport.authenticate('google', {
 
 // facebook登入
 router.get('/facebook', passport.authenticate('facebook', {
-  scope: ['email','user_about_me','user_photos']
+  scope: ['email', 'public_profile']
 }));
 
 // facebook callback
