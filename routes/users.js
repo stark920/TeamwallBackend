@@ -220,15 +220,23 @@ router.patch(
   userControl.updatePassword
 );
 
-// client端戳這支觸發google登入
+// google登入
 router.get('/google', passport.authenticate('google', {
   scope: ['email', 'profile']
 }));
 
-// google登入後callback這支，回傳資料給client端
+// google callback
 router.get('/google/callback', passport.authenticate('google', {
   session: false,
 }), userControl.google);
+
+// facebook登入
+router.get('/facebook', passport.authenticate('facebook'));
+
+// facebook callback
+router.get('/facebook/callback', passport.authenticate('facebook', {
+  session: false,
+}), userControl.facebook);
 
 // 取得指定用戶資訊
 router.get(

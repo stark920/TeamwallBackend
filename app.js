@@ -6,6 +6,8 @@ const path = require('path');
 const swaggerUI = require('swagger-ui-express');
 const swaggerFile = require('./swagger-output.json');
 const resError = require('./service/resError');
+const dotenv = require('dotenv');
+dotenv.config({path: './config.env'});
 
 process.on('uncaughtException', err => {
 	console.error('Uncaught Exception！')

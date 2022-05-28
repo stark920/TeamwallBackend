@@ -62,6 +62,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       select: false,
     },
+    facebookId: {
+      type: String,
+      select: false,
+    },
     isLogin: {
       type: Boolean,
       default: false,
