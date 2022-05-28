@@ -44,19 +44,17 @@ module.exports = function (server) {
     room && socket.join(room);
     let userId = await getUserId(token);
     userId = userId.toString();
-    const clients = io
-      .of("/chat")
-      .adapter.rooms.get("62863bf54025f20e3d376b34");
     // console.log('io.sockets.adapter.rooms', io.of('/chat').adapter.rooms);
     // console.log('io.sockets.adapter.rooms.has(roomIdentifier)', io.of('/chat').adapter.rooms.has('62863bf54025f20e3d376b34'));
-    socket.use(([ event, payload ], next) => {
+    socket.use(([event, payload], next) => {
       console.log("payload", payload);
       if (payload?.message?.length > 100) {
         return next(new Error("您輸入的內容過長"));
       }
       next();
     });
-    console.log("clients", clients);
+
+
     // 監聽 client發來的訊息
     socket.on("chatMessage", async (msg) => {
       const { message } = msg;
@@ -71,6 +69,13 @@ module.exports = function (server) {
       console.log("userInfo", room, userId);
       console.log(`傳來的訊息`, msg);
     });
+
+
+    //使用者輸入中
+    socket.on("typing", (boolean) => {
+      socket.broadcast.in(room).emit("typing", boolean);
+    });
+
     //歷史訊息
     socket.on("history", async (info) => {
       console.log("history", info, room);
