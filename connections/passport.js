@@ -1,15 +1,30 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const FacebookStrategy = require('passport-facebook').Strategy;
 
 passport.use(
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: 'https://secret-scrubland-17327.herokuapp.com/users/google/callback',
+      callbackURL:
+        'https://secret-scrubland-17327.herokuapp.com/users/google/callback',
     },
     function (accessToken, refreshToken, profile, cb) {
-      return cb(null, profile._json)
+      return cb(null, profile._json);
+    }
+  )
+);
+
+passport.use(
+  new FacebookStrategy(
+    {
+      clientID: FACEBOOK_CLIENT_ID,
+      clientSecret: FACEBOOK_CLIENT_SECRET,
+      callbackURL: 'https://secret-scrubland-17327.herokuapp.com/users/facebook/callback',
+    },
+    function (accessToken, refreshToken, profile, cb) {
+      return cb(null, profile._json);
     }
   )
 );
