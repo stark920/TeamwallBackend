@@ -12,7 +12,6 @@ const jwt = require('jsonwebtoken');
 const sendMail = require('../service/email');
 const path = require('path');
 const uuid = require('uuid');
-const { send } = require('process');
 
 const user = {
   // 檢查token
