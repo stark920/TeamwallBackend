@@ -231,9 +231,7 @@ router.get('/google/callback', passport.authenticate('google', {
 }), userControl.google);
 
 // facebook登入
-router.get('/facebook', passport.authenticate('facebook', {
-  scope: ['email', 'public_profile']
-}));
+router.get('/facebook', passport.authenticate('facebook'));
 
 // facebook callback
 router.get('/facebook/callback', passport.authenticate('facebook', {
