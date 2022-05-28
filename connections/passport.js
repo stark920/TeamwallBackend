@@ -24,7 +24,7 @@ passport.use(
       callbackURL: 'https://secret-scrubland-17327.herokuapp.com/users/facebook/callback',
     },
     function (accessToken, refreshToken, profile, cb) {
-      return cb(null, profile._json);
+      return cb(null, profile);
     }
   )
 );
