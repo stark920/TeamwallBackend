@@ -294,53 +294,52 @@ const user = {
   }),
   // 第三方登入（facebook）
   facebook: handleErrorAsync(async (req, res, next) => {
-    res.send({
-      data: req.user,
-    });
-    // const { sub, email, name, picture } = req.user;
-    // // 先檢查email是否存在
-    // const userExisted = await User.findOne({ email }).select(
-    //   '+facebookId +activeStatus'
-    // );
-    // const limit = await User.count();
-    // if (!userExisted && limit >= 500) {
-    //   res.sendFile(path.join(__dirname, '../public/emailCheckSuccess.html'));
-    //   return;
-    // }
+    const { id, email, name, picture } = req.user;
+    const avatar = picture.data.url;
 
-    // let user;
-    // // 更新登入狀態或建立使用者資料
-    // if (userExisted) {
-    //   let data;
-    //   if (userExisted.googleId) {
-    //     data = { isLogin: true };
-    //   }
-    //   if (!userExisted.googleId && userExisted.activeStatus === 'none') {
-    //     data = { isLogin: true, googleId: sub, activeStatus: 'third' };
-    //   }
-    //   if (!userExisted.googleId && userExisted.activeStatus === 'meta') {
-    //     data = { isLogin: true, googleId: sub, activeStatus: 'both' };
-    //   }
-    //   await User.updateOne({ email }, data);
-    //   user = userExisted;
-    // } else {
-    //   const new_uuid = await uuid.v4();
-    //   const password = await bcrypt.hash(new_uuid, 12);
-    //   const createData = {
-    //     googleId: sub,
-    //     email: email,
-    //     name: name,
-    //     avatar: {
-    //       deleteHash: '',
-    //       url: picture,
-    //     },
-    //     password,
-    //     isLogin: true,
-    //     activeStatus: 'third',
-    //   };
-    //   user = await User.create(createData);
-    // }
-    // generateUrlJWT(user, res);
+    // 先檢查email是否存在
+    const userExisted = await User.findOne({ email }).select(
+      '+facebookId +activeStatus'
+    );
+    const limit = await User.count();
+    if (!userExisted && limit >= 500) {
+      res.sendFile(path.join(__dirname, '../public/emailCheckSuccess.html'));
+      return;
+    }
+
+    let user;
+    // 更新登入狀態或建立使用者資料
+    if (userExisted) {
+      let data;
+      if (userExisted.facebookId) {
+        data = { isLogin: true };
+      }
+      if (!userExisted.facebookId && userExisted.activeStatus === 'none') {
+        data = { isLogin: true, facebookId: id, activeStatus: 'third' };
+      }
+      if (!userExisted.facebookId && userExisted.activeStatus === 'meta') {
+        data = { isLogin: true, facebookId: id, activeStatus: 'both' };
+      }
+      await User.updateOne({ email }, data);
+      user = userExisted;
+    } else {
+      const new_uuid = await uuid.v4();
+      const password = await bcrypt.hash(new_uuid, 12);
+      const createData = {
+        facebookId: id,
+        email: email,
+        name: name,
+        avatar: {
+          deleteHash: '',
+          url: avatar,
+        },
+        password,
+        isLogin: true,
+        activeStatus: 'third',
+      };
+      user = await User.create(createData);
+    }
+    generateUrlJWT(user, res);
   }),
 };
 

@@ -25,7 +25,7 @@ passport.use(
       profileFields: ['id', 'displayName', 'photos', 'email']
     },
     function (accessToken, refreshToken, profile, cb) {
-      return cb(null, profile);
+      return cb(null, profile._json);
     }
   )
 );
