@@ -17,7 +17,7 @@ const user = {
   // 檢查token
   check: handleErrorAsync(async (req, res, next) => {
     // isAuth通過就可以直接回傳資料
-    const { _id, name, avatar, gender, chatRecord, followers } = req.user;
+    const { _id, name, avatar, gender } = req.user;
     res.send({
       status: true,
       data: {
@@ -25,8 +25,6 @@ const user = {
         name,
         avatar: avatar.url,
         gender,
-        chatRecord,
-        followers,
       },
     });
   }),
@@ -174,8 +172,6 @@ const user = {
       name: user.name,
       avatar: user.avatar.url,
       gender: user.gender,
-      chatRecord: user.chatRecord,
-      followers: user.followers,
     };
     res.send({ status: true, data });
   }),
@@ -196,25 +192,15 @@ const user = {
     const user = await User.findById(req.params.id);
     if (!user) return appError(401, '查無該用戶資訊', next);
 
-    const { _id, name, avatar, gender, chatRecord, followers } = user;
+    const { _id, name, avatar, gender, followers } = user;
     const data = {
       id: _id,
       name,
       avatar: avatar.url,
       gender,
-      chatRecord,
       followers,
     };
     res.send({ status: true, data });
-  }),
-  // ＊＊＊測試用＊＊＊ 取得所有會員資料
-  getAllUsers: handleErrorAsync(async (req, res, next) => {
-    const users = await User.find().select('+password +isLogin');
-    res.send({ status: true, data: users });
-  }),
-  delAllUsers: handleErrorAsync(async (req, res, next) => {
-    const users = await User.deleteMany({});
-    res.send({ status: true, data: users });
   }),
   getFollows: handleErrorAsync(async (req, res, next) => {
     const list = await User.find({
@@ -225,6 +211,7 @@ const user = {
     });
     res.send({ status: true, data: list });
   }),
+  // 追蹤用戶
   postFollow: handleErrorAsync(async (req, res, next) => {
     if (req.params.id === req.user.id) {
       return appError(401, '無法追蹤自己', next);
@@ -241,6 +228,7 @@ const user = {
     );
     res.send({ status: true, message: '已成功追蹤' });
   }),
+  // 退追用戶
   deleteFollow: handleErrorAsync(async (req, res, next) => {
     if (req.params.id === req.user.id) {
       return appError(401, '無法取消追蹤自己', next);
