@@ -258,26 +258,6 @@ router.get(
   userControl.getProfile
 );
 
-// ＊＊＊測試用＊＊＊ 取得所有會員資料
-router.get(
-  /**
-   * #swagger.tags = ['Users ＊＊＊測試用＊＊＊']
-   * #swagger.summary = '取得所有會員資料'
-   */
-  '/',
-  userControl.getAllUsers
-);
-
-// ＊＊＊測試用＊＊＊ 刪除所有會員資料
-router.delete(
-  /**
-   * #swagger.tags = ['Users ＊＊＊測試用＊＊＊']
-   * #swagger.summary = '刪除所有會員資料'
-   */
-  '/',
-  userControl.delAllUsers
-);
-
 // ＊＊＊測試用＊＊＊ 取得追蹤名單
 router.get(
   /**
