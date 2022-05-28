@@ -236,10 +236,10 @@ const user = {
 
     await User.updateOne(
       {
-        _id: req.user.id,
+        _id: req.params.id,
       },
       {
-        $pull: { followers: { user: req.params.id } },
+        $pull: { followers: { user: req.user.id } },
       }
     );
     res.send({ status: true, message: '已取消追蹤' });
