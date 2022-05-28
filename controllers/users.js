@@ -17,13 +17,16 @@ const user = {
   // 檢查token
   check: handleErrorAsync(async (req, res, next) => {
     // isAuth通過就可以直接回傳資料
+    const { _id, name, avatar, gender, chatRecord, followers } = req.user;
     res.send({
       status: true,
       data: {
-        id: req.user._id,
-        name: req.user.name,
-        avatar: req.user.avatar.url,
-        gender: req.user.gender,
+        id: _id,
+        name,
+        avatar: avatar.url,
+        gender,
+        chatRecord,
+        followers,
       },
     });
   }),
@@ -160,6 +163,7 @@ const user = {
       req.user._id,
       {
         name: req.body.name,
+        gender: req.body?.gender,
         avatar,
       },
       { new: true }
@@ -170,6 +174,8 @@ const user = {
       name: user.name,
       avatar: user.avatar.url,
       gender: user.gender,
+      chatRecord: user.chatRecord,
+      followers: user.followers,
     };
     res.send({ status: true, data });
   }),
@@ -189,11 +195,15 @@ const user = {
 
     const user = await User.findById(req.params.id);
     if (!user) return appError(401, '查無該用戶資訊', next);
+
+    const { _id, name, avatar, gender, chatRecord, followers } = user;
     const data = {
-      id: user._id,
-      name: user.name,
-      avatar: user.avatar.url,
-      gender: user.gender,
+      id: _id,
+      name,
+      avatar: avatar.url,
+      gender,
+      chatRecord,
+      followers,
     };
     res.send({ status: true, data });
   }),

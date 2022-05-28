@@ -45,14 +45,16 @@ const generateSendJWT = (user, statusCode, res) => {
   });
 
   res.set('Authorization', 'Bearer ' + token);
-
+  const { _id, name, avatar, gender, chatRecord, followers } = user;
   res.status(statusCode).send({
     status: true,
-    user: {
-        id: user._id,
-        name: user.name,
-        avatar: user.avatar.url,
-        gender: user.gender
+    data: {
+      id: _id,
+      name,
+      avatar: avatar.url,
+      gender,
+      chatRecord,
+      followers,
     },
   });
 };
