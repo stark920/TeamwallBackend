@@ -66,6 +66,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       select: false,
     },
+    discordId: {
+      type: String,
+      select: false,
+    },
     isLogin: {
       type: Boolean,
       default: false,
