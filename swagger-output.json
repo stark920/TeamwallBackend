@@ -41,6 +41,12 @@
             "type": "string"
           },
           {
+            "name": "likes",
+            "in": "query",
+            "description": "timeSort=hot 最多讚，不填寫則依據 timeSort，可與 timeSort 同時使用",
+            "type": "string"
+          },
+          {
             "name": "skip",
             "in": "query",
             "description": "skip=Number",
@@ -784,6 +790,13 @@
         }
       }
     },
+    "/users/checkCode": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      }
+    },
     "/users/profile": {
       "patch": {
         "tags": [
@@ -930,6 +943,34 @@
         ]
       }
     },
+    "/users/google": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/users/google/callback": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/users/facebook": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/users/facebook/callback": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      }
+    },
     "/users/{id}": {
       "get": {
         "tags": [
@@ -990,26 +1031,6 @@
             "apiKeyAuth": []
           }
         ]
-      }
-    },
-    "/users/": {
-      "get": {
-        "tags": [
-          "Users ＊＊＊測試用＊＊＊"
-        ],
-        "summary": "取得所有會員資料",
-        "description": "",
-        "parameters": [],
-        "responses": {}
-      },
-      "delete": {
-        "tags": [
-          "Users ＊＊＊測試用＊＊＊"
-        ],
-        "summary": "刪除所有會員資料",
-        "description": "",
-        "parameters": [],
-        "responses": {}
       }
     },
     "/users/follows": {
