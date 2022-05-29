@@ -243,6 +243,39 @@ router.get('/discord/callback', passport.authenticate('discord', {
   session: false,
 }), userControl.discord);
 
+// 取得追蹤名單
+router.get(
+  /**
+   * #swagger.tags = ['Users ＊＊＊測試用＊＊＊']
+   * #swagger.summary = '取得追蹤名單'
+   */
+  '/follows',
+  isAuth,
+  userControl.getFollows
+);
+
+// 新增追蹤
+router.post(
+  /**
+   * #swagger.tags = ['Users ＊＊＊測試用＊＊＊']
+   * #swagger.summary = '新增追蹤名單'
+   */
+  '/:id/follow',
+  isAuth,
+  userControl.postFollow
+);
+
+// 刪除追蹤
+router.delete(
+  /**
+   * #swagger.tags = ['Users ＊＊＊測試用＊＊＊']
+   * #swagger.summary = '刪除追蹤名單'
+   */
+  '/:id/follow',
+  isAuth,
+  userControl.deleteFollow
+);
+
 // 取得指定用戶資訊
 router.get(
   /**
@@ -270,40 +303,5 @@ router.get(
   userValidator.getProfile,
   userControl.getProfile
 );
-
-// ＊＊＊測試用＊＊＊ 取得追蹤名單
-router.get(
-  /**
-   * #swagger.tags = ['Users ＊＊＊測試用＊＊＊']
-   * #swagger.summary = '取得追蹤名單'
-   */
-  '/follows',
-  isAuth,
-  userControl.getFollows
-);
-
-// ＊＊＊測試用＊＊＊ 新增追蹤名單
-router.post(
-  /**
-   * #swagger.tags = ['Users ＊＊＊測試用＊＊＊']
-   * #swagger.summary = '新增追蹤名單'
-   */
-  '/:id/follow',
-  isAuth,
-  userControl.postFollow
-);
-
-// ＊＊＊測試用＊＊＊ 刪除追蹤名單
-router.delete(
-  /**
-   * #swagger.tags = ['Users ＊＊＊測試用＊＊＊']
-   * #swagger.summary = '刪除追蹤名單'
-   */
-  '/:id/follow',
-  isAuth,
-  userControl.deleteFollow
-);
-
-
 
 module.exports = router;
