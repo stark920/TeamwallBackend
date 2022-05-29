@@ -204,7 +204,7 @@ const user = {
   }),
   getFollows: handleErrorAsync(async (req, res, next) => {
     const list = await User.find({
-      followers: { $in: [req.user.id] },
+      followers: { $in: [req.user._id] },
     }).populate({
       path: 'user',
       select: 'name _id avatar',

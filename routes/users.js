@@ -243,7 +243,7 @@ router.get('/discord/callback', passport.authenticate('discord', {
   session: false,
 }), userControl.discord);
 
-// 取得追蹤名單
+// ＊＊＊測試用＊＊＊ 取得追蹤名單
 router.get(
   /**
    * #swagger.tags = ['Users ＊＊＊測試用＊＊＊']
