@@ -37,7 +37,7 @@ passport.use(
     {
       clientID: process.env.DISCORD_CLIENT_ID,
       clientSecret: process.env.DISCORD_CLIENT_SECRET,
-      callbackURL: 'http://127.0.0.1:3007/users/discord/callback',
+      callbackURL: 'https://secret-scrubland-17327.herokuapp.com/users/discord/callback',
       scope: ['identify', 'email'],
     },
     function (accessToken, refreshToken, profile, cb) {
