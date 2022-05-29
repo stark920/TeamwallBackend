@@ -1,4 +1,5 @@
 const User = require('../models/userModel');
+const uuid = require('uuid');
 const { generateUrlJWT } = require('./auth');
 
 const thirdPartySignIn = async (type, data, res) => {

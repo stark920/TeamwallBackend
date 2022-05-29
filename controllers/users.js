@@ -11,7 +11,6 @@ const Imgur = require('../utils/imgur');
 const jwt = require('jsonwebtoken');
 const sendMail = require('../service/email');
 const path = require('path');
-const uuid = require('uuid');
 const thirdPartySignIn = require('../service/thirdPartySignIn');
 
 const user = {
