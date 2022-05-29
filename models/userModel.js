@@ -43,7 +43,7 @@ const userSchema = new mongoose.Schema(
           },
           receiver: {
             type: mongoose.Schema.ObjectId,
-            ref: 'User',
+            ref: 'user',
           },
         },
       ],
@@ -55,7 +55,7 @@ const userSchema = new mongoose.Schema(
         user: {
           type: mongoose.Schema.ObjectId,
           unique: true,
-          ref: 'User',
+          ref: 'user',
         },
         createdAt: {
           type: Date,
@@ -98,6 +98,6 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model('user', userSchema);
 
 module.exports = User;
