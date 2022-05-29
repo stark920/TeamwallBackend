@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
       default: {
         deleteHash: '',
         url: 'https://i.imgur.com/gA5JWK5.png',
-      }
+      },
     },
     gender: {
       type: String,
@@ -51,7 +51,12 @@ const userSchema = new mongoose.Schema(
     },
     followers: [
       {
-        user: { type: mongoose.Schema.ObjectId, ref: 'User' },
+        _id: false,
+        user: {
+          type: mongoose.Schema.ObjectId,
+          unique: true,
+          ref: 'User',
+        },
         createdAt: {
           type: Date,
           default: Date.now,
@@ -93,6 +98,6 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-const User = mongoose.model('user', userSchema);
+const User = mongoose.model('User', userSchema);
 
 module.exports = User;
