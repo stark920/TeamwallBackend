@@ -224,7 +224,6 @@ router.patch(
 router.get('/google', passport.authenticate('google', {
   scope: ['email', 'profile']
 }));
-
 // google callback
 router.get('/google/callback', passport.authenticate('google', {
   session: false,
@@ -232,11 +231,17 @@ router.get('/google/callback', passport.authenticate('google', {
 
 // facebook登入
 router.get('/facebook', passport.authenticate('facebook'));
-
 // facebook callback
 router.get('/facebook/callback', passport.authenticate('facebook', {
   session: false,
 }), userControl.facebook);
+
+// discord登入
+router.get('/discord', passport.authenticate('discord'));
+// discord callback
+router.get('/discord/callback', passport.authenticate('discord', {
+  session: false,
+}), userControl.discord);
 
 // 取得指定用戶資訊
 router.get(

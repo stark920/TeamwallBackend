@@ -11,7 +11,7 @@ const Imgur = require('../utils/imgur');
 const jwt = require('jsonwebtoken');
 const sendMail = require('../service/email');
 const path = require('path');
-const uuid = require('uuid');
+const thirdPartySignIn = require('../service/thirdPartySignIn');
 
 const user = {
   // 檢查token
@@ -246,117 +246,33 @@ const user = {
   }),
   // 第三方登入（google）
   google: handleErrorAsync(async (req, res, next) => {
-    const { sub, email, name, picture } = req.user;
-    // 先檢查email是否存在
-    const userExisted = await User.findOne({ email }).select(
-      '+googleId +activeStatus'
-    );
-    const limit = await User.count();
-    if (!userExisted && limit >= 500) {
-      res.sendFile(path.join(__dirname, '../public/emailCheckSuccess.html'));
-      return;
-    }
-
-    let user;
-    // 更新登入狀態或建立使用者資料
-    if (userExisted) {
-      // 已經有帳號
-      let data;
-      if (userExisted.googleId) {
-        // 已經有註冊google
-        data = { isLogin: true };
-      } else {
-        // 還沒註冊google
-        if (userExisted.activeStatus === 'none') {
-          // 有使用一般註冊但尚未啟用
-          data = { isLogin: true, googleId: sub, activeStatus: 'third' };
-        } else if (userExisted.activeStatus === 'meta') {
-          // 有使用一般註冊且完成啟用
-          data = { isLogin: true, googleId: sub, activeStatus: 'both' };
-        } else {
-          // 有啟用第三方登入 或是 兩種登入方式都有啟用
-          data = { isLogin: true, googleId: sub };
-        }
-      }
-      await User.updateOne({ email }, data);
-      user = userExisted;
-    } else {
-      // 沒有帳號
-      const new_uuid = await uuid.v4();
-      const password = await bcrypt.hash(new_uuid, 12);
-      const createData = {
-        googleId: sub,
-        email: email,
-        name: name,
-        avatar: {
-          deleteHash: '',
-          url: picture,
-        },
-        password,
-        isLogin: true,
-        activeStatus: 'third',
-      };
-      user = await User.create(createData);
-    }
-    generateUrlJWT(user, res);
+    const data = {
+      id: req.user.sub,
+      email: req.user.email,
+      name: req.user.name,
+      picture: req.user.picture,
+    };
+    thirdPartySignIn('google', data, res);
   }),
   // 第三方登入（facebook）
   facebook: handleErrorAsync(async (req, res, next) => {
-    const { id, email, name, picture } = req.user;
-    const avatar = picture.data.url;
-
-    // 先檢查email是否存在
-    const userExisted = await User.findOne({ email }).select(
-      '+facebookId +activeStatus'
-    );
-    const limit = await User.count();
-    if (!userExisted && limit >= 500) {
-      res.sendFile(path.join(__dirname, '../public/emailCheckSuccess.html'));
-      return;
-    }
-
-    let user;
-    // 更新登入狀態或建立使用者資料
-    if (userExisted) {
-      // 已經有帳號
-      let data;
-      if (userExisted.facebookId) {
-        // 已經有註冊facebook
-        data = { isLogin: true };
-      } else {
-        // 還沒註冊facebook
-        if (userExisted.activeStatus === 'none') {
-          // 有使用一般註冊但尚未啟用
-          data = { isLogin: true, facebookId: id, activeStatus: 'third' };
-        } else if (userExisted.activeStatus === 'meta') {
-          // 有使用一般註冊且完成啟用
-          data = { isLogin: true, facebookId: id, activeStatus: 'both' };
-        } else {
-          // 有啟用第三方登入 或是 兩種登入方式都有啟用
-          data = { isLogin: true, facebookId: id };
-        }
-      }
-      await User.updateOne({ email }, data);
-      user = userExisted;
-    } else {
-      // 沒有帳號
-      const new_uuid = await uuid.v4();
-      const password = await bcrypt.hash(new_uuid, 12);
-      const createData = {
-        facebookId: id,
-        email: email,
-        name: name,
-        avatar: {
-          deleteHash: '',
-          url: avatar,
-        },
-        password,
-        isLogin: true,
-        activeStatus: 'third',
-      };
-      user = await User.create(createData);
-    }
-    generateUrlJWT(user, res);
+    const data = {
+      id: req.user.id,
+      email: req.user.email,
+      name: req.user.name,
+      picture: req.user.picture.data.url,
+    };
+    thirdPartySignIn('facebook', data, res);
+  }),
+  // 第三方登入（discord)
+  discord: handleErrorAsync(async (req, res, next) => {
+    const data = {
+      id: req.user.id,
+      email: req.user.email,
+      name: req.user.username,
+      picture: req.user?.avatar,
+    };
+    thirdPartySignIn('discord', data, res);
   }),
 };
 
