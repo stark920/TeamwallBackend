@@ -12,12 +12,14 @@ const posts = {
     const likesSort = req.query.likesSort === 'hot' ? -1 : '';
     const postsSort = {likesNum: likesSort, createdAt: timeSort}
     if (!likesSort) delete postsSort.likesNum;
-
+    
+    const regexEscape = (str) => {
+      return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    } 
     // search
     const search = req.query.search
-      ? {content: new RegExp(req.query.search)}
+      ? {content: new RegExp(regexEscape(req.query.search))}
       : {}
-    
     // records
     const queryRecords = {
       limit: req.query.limit,
