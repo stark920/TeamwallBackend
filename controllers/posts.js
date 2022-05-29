@@ -7,30 +7,38 @@ const mongoose = require('mongoose')
 
 const posts = {
   getPosts: handleErrorAsync(async (req, res, next) => {
-    const timeSort = req.query.timeSort == 'old' ? 1 : -1
+    // sort
+    const timeSort = req.query.timeSort === 'old' ? 1 : -1;
+    const likesSort = req.query.likesSort === 'hot' ? -1 : '';
+    const postsSort = {likesNum: likesSort, createdAt: timeSort}
+    if (!likesSort) delete postsSort.likesNum;
+
+    // search
     const search = req.query.search
       ? {content: new RegExp(req.query.search)}
       : {}
+    
+    // records
     const queryRecords = {
       limit: req.query.limit,
       skip: req.query.skip,
     }
-    // const posts = await Post.find(search).populate({
-    //   path: 'userId',
-    //   select: 'name avatar'
-    // }).sort({ 'createAt': timeSort })
-    //   .skip(queryRecords.skip)
-    //   .limit(queryRecords.limit);
-
     // current user
     const currentUser = req.user
 
     let posts = await Post.aggregate([
       {
+        $addFields: {
+          likesNum:  {
+            $size: '$likes'
+          }
+        }
+      },
+      {
         $match: search,
       },
       {
-        $sort: {createdAt: timeSort},
+        $sort: postsSort,
       },
       {$skip: Number(queryRecords.skip) || 0},
       {$limit: Number(queryRecords.limit) || 10}, // default post number with 10

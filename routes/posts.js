@@ -18,6 +18,10 @@ router.get(
       in: 'query',
       description: 'timeSort=old (舊到新) or 不填寫 (新到舊)',
     }
+   * #swagger.parameters['likes'] = {
+      in: 'query',
+      description: 'timeSort=hot 最多讚，不填寫則依據 timeSort，可與 timeSort 同時使用',
+    }
    * #swagger.parameters['skip'] = {
       in: 'query',
       description: 'skip=Number',
