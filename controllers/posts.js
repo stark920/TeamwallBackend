@@ -122,6 +122,9 @@ const posts = {
     const post = await Post.find({ _id: req.params.id }).populate({
       path: 'userId',
       select: 'name avatar'
+    }).populate({
+      path: 'comments',
+      select: 'comment userId'
     });
     // 無資料，回傳空陣列
     res.send({ status: true, data: post });

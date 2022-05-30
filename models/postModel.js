@@ -25,7 +25,15 @@ const postsSchema = new mongoose.Schema({
   },
 },
 {
-  versionKey: false, // __v: 引藏
+  versionKey: false,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true },
+});
+
+postsSchema.virtual('comments', {
+  ref: 'comment',
+  foreignField: 'postId',
+  localField: '_id'
 });
 
 const Post = mongoose.model('post', postsSchema);
