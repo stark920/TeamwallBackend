@@ -32,7 +32,7 @@ npm start:dev
 Run production mode:
 
 ```sh
-npm start:dev
+npm start:prod
 ```
 
 Generate Swagger Docs (use Swagger-Autogen):
