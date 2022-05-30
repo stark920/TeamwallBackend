@@ -74,6 +74,25 @@ const posts = {
               },
             },
           ],
+          pipeline: [
+            {
+              $lookup: {
+                from: 'Users',
+                localField: 'userId', // post collection column
+                foreignField: '_id', // Users collection column
+                pipeline: [
+                  {
+                    $project: {
+                      _id: 1,
+                      name: 1,
+                      avatar: 1,
+                    },
+                  },
+                ],
+                as: 'userId',
+              },
+            },
+          ],
           as: 'comments',
         },
       },
@@ -103,7 +122,7 @@ const posts = {
     const post = await Post.find({ _id: req.params.id }).populate({
       path: 'userId',
       select: 'name avatar'
-    })
+    });
     // 無資料，回傳空陣列
     res.send({ status: true, data: post });
   }),
