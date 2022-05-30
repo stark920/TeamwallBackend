@@ -54,7 +54,7 @@ const posts = {
           },
           pipeline: [
             {$sort: {createAt: -1}}, // comments new -> old
-            {$limit: 2},
+            {$limit: 10},
             {
               $addFields: {
                 actions: {
@@ -73,8 +73,6 @@ const posts = {
                 },
               },
             },
-          ],
-          pipeline: [
             {
               $lookup: {
                 from: 'Users',
@@ -83,15 +81,25 @@ const posts = {
                 pipeline: [
                   {
                     $project: {
-                      _id: 1,
+                      _id: false,
                       name: 1,
-                      avatar: 1,
+                      avatar: '$avatar.url'
                     },
                   },
                 ],
                 as: 'userId',
               },
             },
+            {$unwind: '$userId'},
+            {
+              $project: {
+                _id: 1,
+                content: 1,
+                userId: 1,
+                createdAt: 1,
+                actions: 1
+              },
+            }
           ],
           as: 'comments',
         },
@@ -124,7 +132,7 @@ const posts = {
       select: 'name avatar'
     }).populate({
       path: 'comments',
-      select: 'comment userId'
+      select: 'content userId'
     });
     // 無資料，回傳空陣列
     res.send({ status: true, data: post });
