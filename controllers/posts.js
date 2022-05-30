@@ -81,7 +81,7 @@ const posts = {
                 pipeline: [
                   {
                     $project: {
-                      _id: false,
+                      _id: 1,
                       name: 1,
                       avatar: '$avatar.url'
                     },
@@ -129,10 +129,10 @@ const posts = {
   getPost: handleErrorAsync(async (req, res, next) => {
     const post = await Post.find({ _id: req.params.id }).populate({
       path: 'userId',
-      select: 'name avatar'
+      select: 'name avatar.url'
     }).populate({
       path: 'comments',
-      select: 'content userId'
+      select: 'content -postId'
     });
     // 無資料，回傳空陣列
     res.send({ status: true, data: post });
