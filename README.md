@@ -1,5 +1,5 @@
 # TeamWallBackend
-HexSchool node.js live course teamwork practice.
+[HexSchool](https://www.hexschool.com/) node.js live course teamwork practice.
 
 ## Environment
 Node.js: v14.19.1
