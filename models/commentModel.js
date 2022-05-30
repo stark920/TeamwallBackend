@@ -25,7 +25,15 @@ const commentsSchema = new mongoose.Schema(
   {
     versionKey: false,
   }
-)
+);
+
+commentsSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'userId',
+    select: 'name id avatar.url'
+  });
+  next();
+});
 
 const Comment = mongoose.model('comment', commentsSchema)
 

@@ -54,7 +54,7 @@ const posts = {
           },
           pipeline: [
             {$sort: {createAt: -1}}, // comments new -> old
-            {$limit: 2},
+            {$limit: 10},
             {
               $addFields: {
                 actions: {
@@ -73,6 +73,33 @@ const posts = {
                 },
               },
             },
+            {
+              $lookup: {
+                from: 'Users',
+                localField: 'userId', // post collection column
+                foreignField: '_id', // Users collection column
+                pipeline: [
+                  {
+                    $project: {
+                      _id: 1,
+                      name: 1,
+                      avatar: '$avatar.url'
+                    },
+                  },
+                ],
+                as: 'userId',
+              },
+            },
+            {$unwind: '$userId'},
+            {
+              $project: {
+                _id: 1,
+                content: 1,
+                userId: 1,
+                createdAt: 1,
+                actions: 1
+              },
+            }
           ],
           as: 'comments',
         },
@@ -102,8 +129,11 @@ const posts = {
   getPost: handleErrorAsync(async (req, res, next) => {
     const post = await Post.find({ _id: req.params.id }).populate({
       path: 'userId',
-      select: 'name avatar'
-    })
+      select: 'name avatar.url'
+    }).populate({
+      path: 'comments',
+      select: 'content -postId'
+    });
     // 無資料，回傳空陣列
     res.send({ status: true, data: post });
   }),
