@@ -204,7 +204,7 @@ const user = {
   }),
   getFollows: handleErrorAsync(async (req, res, next) => {
     const list = await User.find({
-      followers: { $in: [req.user._id] },
+      'followers.user': { $in: [req.user._id] },
     }).populate({
       path: 'user',
       select: 'name _id avatar',
@@ -216,7 +216,13 @@ const user = {
     if (req.params.id === req.user.id) {
       return appError(401, '無法追蹤自己', next);
     }
-
+    const followers = await User.find({
+      'followers.user': { $in: [req.user._id] }
+    })
+    const isFollowers = followers.some(item => req.params.id === item._id.valueOf());
+    if (isFollowers) {
+      return appError(401, "您已追蹤過此人", next);
+    }
     await User.updateOne(
       {
         _id: req.params.id,
