@@ -1,7 +1,9 @@
 const Comment = require('../models/commentModel');
 const Post = require('../models/postModel');
-const { appError, handleErrorAsync } = require('../service');
+const { appError } = require('../service');
 
+const idPath = '_id';
+const docPath = '_doc';
 // validate postId
 const validatePostId = async (postId, next) => {
   if (!postId || postId.toString().length !== 24) {
@@ -27,8 +29,9 @@ const validateCommentActions = async (currentUserId, ownerId, data) => {
   }
 
   const finalData = data.map((item) => {
-    item._doc.actions = [...actions];
-    return item;
+    const modifiedItem = item;
+    modifiedItem[docPath].actions = [...actions];
+    return modifiedItem;
   });
 
   return finalData;
@@ -36,7 +39,7 @@ const validateCommentActions = async (currentUserId, ownerId, data) => {
 
 // main function
 const commentController = {
-  getMoreComments: handleErrorAsync(async (req, res, next) => {
+  async getMoreComments(req, res, next) {
     // current user
     const currentUser = req.user;
 
@@ -44,13 +47,13 @@ const commentController = {
     const { postId } = req.params;
     const post = await validatePostId(postId, next);
 
-    const currentUserId = currentUser._id.toString();
+    const currentUserId = currentUser[idPath].toString();
     const ownerId = post.userId.toString();
 
     // get comments
     const start = Number(req.query.start);
     const limit = Number(req.query.limit);
-    const timeSort = req.query.timeSort == 'old' ? 1 : -1;
+    const timeSort = req.query.timeSort === 'old' ? 1 : -1;
     let commentData = await Comment.find({ postId })
       .populate({
         path: 'userId',
@@ -69,8 +72,8 @@ const commentController = {
     commentData = await validateCommentActions(currentUserId, ownerId, commentData);
 
     res.send({ status: true, data: commentData });
-  }),
-  postComments: handleErrorAsync(async (req, res, next) => {
+  },
+  async postComments(req, res, next) {
     // current user
     const currentUser = req.user;
 
@@ -90,9 +93,9 @@ const commentController = {
       postId,
     });
 
-    res.send({ status: true, data: newComment });
-  }),
-  patchComment: handleErrorAsync(async (req, res, next) => {
+    return res.send({ status: true, data: newComment });
+  },
+  async patchComment(req, res, next) {
     // current user
     const currentUser = req.user;
 
@@ -105,8 +108,8 @@ const commentController = {
     const targetComment = await Comment.findById(commentId);
     if (!targetComment) return appError(400, '無此留言', next);
 
-    // if current user does not own the comment, no right for editting
-    const currentUserId = currentUser._id.toString();
+    // if current user does not own the comment, no right for editing
+    const currentUserId = currentUser[idPath].toString();
     const ownerId = targetComment.userId.toString();
     if (currentUserId !== ownerId) {
       return appError(400, '無修改權限', next);
@@ -118,9 +121,9 @@ const commentController = {
       { returnDocument: 'after' },
     );
 
-    res.send({ status: true, data: updateComment });
-  }),
-  deleteComment: handleErrorAsync(async (req, res, next) => {
+    return res.send({ status: true, data: updateComment });
+  },
+  async deleteComment(req, res, next) {
     // current user
     const currentUser = req.user;
 
@@ -129,7 +132,7 @@ const commentController = {
     if (!targetComment) return appError(400, '無此留言', next);
 
     // if current user does not own the comment, no right for deletion
-    const currentUserId = currentUser._id.toString();
+    const currentUserId = currentUser[idPath].toString();
     const ownerId = targetComment.userId.toString();
     if (currentUserId !== ownerId) {
       return appError(400, '無修改權限', next);
@@ -137,8 +140,8 @@ const commentController = {
 
     const deleteComment = await Comment.deleteOne({ _id: commentId });
 
-    res.send({ status: true, data: deleteComment });
-  }),
+    return res.send({ status: true, data: deleteComment });
+  },
 };
 
 module.exports = commentController;

@@ -2,7 +2,7 @@ const express = require('express');
 
 const router = express.Router();
 const commentController = require('../controllers/comments');
-const { isAuth } = require('../service/auth');
+const { isAuth, handleErrorAsync } = require('../service');
 
 router.get(
   '/:postId',
@@ -58,7 +58,7 @@ router.get(
         }
       }
    */
-  commentController.getMoreComments,
+  handleErrorAsync(commentController.getMoreComments),
 );
 
 router.post(
@@ -100,7 +100,7 @@ router.post(
         }
       }
    */
-  commentController.postComments,
+  handleErrorAsync(commentController.postComments),
 );
 
 router.patch(
@@ -143,7 +143,7 @@ router.patch(
         }
       }
    */
-  commentController.patchComment,
+  handleErrorAsync(commentController.patchComment),
 );
 
 router.delete(
@@ -179,7 +179,7 @@ router.delete(
         }
       }
    */
-  commentController.deleteComment,
+  handleErrorAsync(commentController.deleteComment),
 );
 
 module.exports = router;

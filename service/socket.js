@@ -17,16 +17,26 @@ module.exports = (server) => {
   });
 
   // 驗證token
-  io.use((socket, next) => {
+  io.use(async (socket, next) => {
     const token = socket.handshake.query?.token;
     if (!token) {
       return next(new Error('請重新登入'));
     }
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-      if (err) return next(new Error('請重新登入'));
-      socket.decoded = decoded;
-      next();
+
+    const decodedData = await new Promise((resolve, reject) => {
+      jwt.verify(token, process.env.JWT_SECRET, (error, payload) => {
+        if (error) {
+          reject(next(new Error('請重新登入')));
+        } else {
+          resolve(payload);
+        }
+      });
     });
+
+    /* eslint no-param-reassign: ["error", { "props": false }] */
+    socket.decoded = decodedData;
+
+    return next();
   });
 
   const getUserId = async (token) => {
@@ -48,16 +58,19 @@ module.exports = (server) => {
     const room = socket.handshake.query?.room;
     const token = socket.handshake.query?.token;
     console.log('connection----', room);
-    room && socket.join(room);
+    if (room) {
+      socket.join(room);
+    }
+
     let userId = await getUserId(token);
     userId = userId.toString();
 
-    socket.use(([event, payload], next) => {
+    socket.use(([payload], next) => {
       console.log('payload', payload);
       if (payload?.message?.length > 100) {
         return next(new Error('您輸入的內容過長'));
       }
-      next();
+      return next();
     });
 
     // 監聽 client發來的訊息
@@ -123,17 +136,17 @@ module.exports = (server) => {
       }
       socket.emit('history', msgList);
     });
-    socket.on('leaveRoom', (room) => {
-      console.log('leaveRoom~~~', room);
-      socket.leave(room);
+    socket.on('leaveRoom', (currentRoom) => {
+      console.log('leaveRoom~~~', currentRoom);
+      socket.leave(currentRoom);
     });
     // 錯誤處理
     socket.on('error', (err) => {
       socket.emit('error', err.message);
     });
     // 斷開連接
-    socket.on('disconnect', (socket) => {
-      console.log('socket-disconnect', socket);
+    socket.on('disconnect', (currentSocket) => {
+      console.log('socket-disconnect', currentSocket);
     });
   });
 

@@ -7,13 +7,14 @@ const handleErrorAsync = require('../service/handleErrorAsync');
 const { isAuth } = require('../service/auth');
 
 const { ObjectId } = mongoose.Types;
+const idPath = '_id';
 
 // 取得聊天室id
 router.post(
   '/room-info',
   isAuth,
   handleErrorAsync(async (req, res, next) => {
-    const sender = req.user._id.toString();
+    const sender = req.user[idPath].toString();
     const { receiver } = req.body;
     if (!receiver) {
       return next(appError(400, '未填寫聊天對象使用者id', next));
@@ -31,40 +32,42 @@ router.post(
     }
     const { name, avatar, _id } = receiverUser;
     // 已經有聊天記錄就直接回傳id
+    let resData;
     if (receiverRecord) {
-      res.status(200).json({
+      resData = {
         status: true,
         roomId,
         name,
         avatar,
         _id,
-      });
+      };
     } else {
       // 沒有聊天記錄就新建房間
       const newRoom = await ChatRoom.create({
         members: [ObjectId(sender), ObjectId(receiver)],
       });
       await User.findByIdAndUpdate(sender, {
-        $push: { chatRecord: { roomId: newRoom._id, receiver } },
+        $push: { chatRecord: { roomId: newRoom[idPath], receiver } },
       });
       await User.findByIdAndUpdate(receiver, {
-        $push: { chatRecord: { roomId: newRoom._id, receiver: sender } },
+        $push: { chatRecord: { roomId: newRoom[idPath], receiver: sender } },
       });
-      res.status(200).json({
+      resData = {
         status: true,
-        roomId: newRoom._id,
+        roomId: newRoom[idPath],
         name,
         avatar,
         _id,
-      });
+      };
     }
+    return res.send(resData);
   }),
 );
 
 // TODO for test
 router.delete(
   '/chat-record/:id',
-  handleErrorAsync(async (req, res, next) => {
+  handleErrorAsync(async (req, res) => {
     const { id } = req.params;
     await User.findOneAndUpdate({ _id: id }, { chatRecord: [] });
     res.status(200).json({ message: 'success' });
@@ -74,7 +77,7 @@ router.delete(
 // TODO for test
 router.delete(
   '/chat-record',
-  handleErrorAsync(async (req, res, next) => {
+  handleErrorAsync(async (req, res) => {
     await ChatRoom.deleteMany({});
     res.status(200).json({ message: 'success' });
   }),
@@ -82,7 +85,7 @@ router.delete(
 
 // TODO for test
 
-router.get('/all', async (req, res, next) => {
+router.get('/all', async (req, res) => {
   const chatRecord = await ChatRoom.find();
   res.status(200).json({ message: 'success', chatRecord });
 });
@@ -91,9 +94,9 @@ router.get('/all', async (req, res, next) => {
 router.post(
   '/chat-record',
   isAuth,
-  handleErrorAsync(async (req, res, next) => {
+  handleErrorAsync(async (req, res) => {
     const queryResult = await User.aggregate([
-      { $match: { _id: req.user._id } },
+      { $match: { _id: req.user[idPath] } },
       {
         $project: { chatRecord: 1 },
       },

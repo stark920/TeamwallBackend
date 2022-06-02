@@ -2,7 +2,7 @@ const express = require('express');
 
 const router = express.Router();
 const likesControl = require('../controllers/likes');
-const { isAuth } = require('../service');
+const { isAuth, handleErrorAsync } = require('../service');
 
 // 查詢
 router.get(
@@ -52,7 +52,7 @@ router.get(
         }
       }
    */
-  likesControl.getLikes,
+  handleErrorAsync(likesControl.getLikes),
 );
 
 // 新增-移除
@@ -93,7 +93,7 @@ router.post(
         }
       }
    */
-  likesControl.postAndCancelLike,
+  handleErrorAsync(likesControl.postAndCancelLike),
 );
 
 module.exports = router;

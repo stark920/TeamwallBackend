@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const upload = require('../service/upload');
 const postsControl = require('../controllers/posts');
-const { isAuth } = require('../service/auth');
+const { isAuth, handleErrorAsync } = require('../service');
 
 // 取得所有貼文
 router.get(
@@ -87,7 +87,7 @@ router.get(
         }
       }
    */
-  postsControl.getPosts,
+  handleErrorAsync(postsControl.getPosts),
 );
 
 router.get(
@@ -122,7 +122,7 @@ router.get(
         }
       }
    */
-  postsControl.getPost,
+  handleErrorAsync(postsControl.getPost),
 );
 
 router.post(
@@ -166,7 +166,7 @@ router.post(
         }
       }
    */
-  postsControl.postPost,
+  handleErrorAsync(postsControl.postPost),
 );
 
 router.patch(
@@ -210,7 +210,7 @@ router.patch(
         }
       }
    */
-  postsControl.patchPost,
+  handleErrorAsync(postsControl.patchPost),
 );
 
 router.delete(
@@ -220,7 +220,7 @@ router.delete(
    * #swagger.tags = ['Posts']
    * #swagger.summary = '刪除單筆貼文'
    */
-  postsControl.deletePost,
+  handleErrorAsync(postsControl.deletePost),
 );
 
 // ＊＊＊測試用＊＊＊ 刪除所有貼文資料
@@ -230,7 +230,7 @@ router.delete(
    * #swagger.tags = ['Posts ＊＊＊測試用＊＊＊']
    * #swagger.summary = '刪除所有貼文'
    */
-  postsControl.deletePosts,
+  handleErrorAsync(postsControl.deletePosts),
 );
 
 module.exports = router;
