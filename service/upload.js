@@ -16,7 +16,7 @@ const upload = multer({
     ) {
       callback(null, true);
     } else {
-      error.message = '檔案必須為 .jpg 或 .jpeg 或 .png';
+      error.message = '檔案必須為 .jpg 、 .jpeg 或 .png';
       return callback(error);
     }
     return callback(null, true);

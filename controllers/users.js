@@ -77,7 +77,7 @@ const user = {
       from: 'MetaWall <metawall001@gmail.com>',
       subject: '[MetaWall]帳號啟用確認信',
       to: email,
-      text: `尊敬的 ${name} 您好！點選連結即可啟用您的 MetaWall 帳號，[https://secret-scrubland-17327.herokuapp.com/users/checkCode?code=${activeCode}] 為保障您的帳號安全，請在24小時內點選該連結，您也可以將連結複製到瀏覽器位址列訪問。`,
+      text: `尊敬的 ${name} 您好！點選連結即可啟用您的 MetaWall 帳號，[${process.env.HEROKU_URL}/users/checkCode?code=${activeCode}] 為保障您的帳號安全，請在24小時內點選該連結，您也可以將連結複製到瀏覽器位址列訪問。`,
     };
     const result = await sendMail(mail);
 

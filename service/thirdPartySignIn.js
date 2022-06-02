@@ -4,20 +4,19 @@ const bcrypt = require('bcrypt');
 const User = require('../models/userModel');
 const { generateUrlJWT } = require('./auth');
 
-const thirdPartySignIn = async (type, data, res) => {
+const thirdPartySignIn = async (thirdPartyName, data, res) => {
   const {
     id, email, name, picture,
   } = data;
 
-  const key = `${type}Id`;
+  const key = `${thirdPartyName}Id`;
 
   const userExisted = await User.findOne({ email }).select(
     `+${key} +activeStatus`,
   );
   const limit = await User.count();
   if (!userExisted && limit >= 500) {
-    res.sendFile(path.join(__dirname, '../public/emailLimitExceeded.html'));
-    return;
+    return res.sendFile(path.join(__dirname, '../public/emailLimitExceeded.html'));
   }
 
   let user;
@@ -37,7 +36,7 @@ const thirdPartySignIn = async (type, data, res) => {
   } else {
     const randomPasswordBase = uuid.v4();
     const password = await bcrypt.hash(randomPasswordBase, 12);
-    const createData = {
+    const newUserData = {
       email,
       name,
       avatar: {
@@ -47,8 +46,8 @@ const thirdPartySignIn = async (type, data, res) => {
       password,
       activeStatus: 'third',
     };
-    createData[key] = id;
-    user = await User.create(createData);
+    newUserData[key] = id;
+    user = await User.create(newUserData);
   }
   generateUrlJWT(user, res);
 };

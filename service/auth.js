@@ -11,7 +11,6 @@ const isAuth = handleErrorAsync(async (req, res, next) => {
     return appError(401, '未提供授權資訊', next);
   }
   const [tokenType, token] = req.headers.authorization.split(' ');
-
   if (tokenType !== 'Bearer' || !token) {
     return appError(401, '授權資料異常', next);
   }
@@ -26,21 +25,17 @@ const isAuth = handleErrorAsync(async (req, res, next) => {
     });
   });
 
-  const currentUser = await User.findById(decodedToken.id).select('+isLogin +activeStatus');
-
+  const currentUser = await User.findById(decodedToken.id).select('+activeStatus');
   if (!currentUser) return appError(401, '此帳號無法使用，請聯繫管理員', next);
-
   if (currentUser.activeStatus === 'none') return appError(401, '帳號尚未啟用', next);
 
-  if (!currentUser.isLogin) return appError(401, '請重新登入', next);
-
   req.user = currentUser;
-
   return next();
 });
 
 // 一般登入 回傳json
 const generateSendJWT = (user, statusCode, res) => {
+  console.log(process.env.JWT_SECRET);
   const token = jwt.sign({ id: user[idPath] }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_DAY,
   });
@@ -65,7 +60,7 @@ const generateUrlJWT = (user, res) => {
   const token = jwt.sign({ id: user[idPath] }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_DAY,
   });
-  const path = `${process.env.WEBSITE_URL}/#/callback?token=${token}&id=${user[idPath]}&name=${user.name}&avatar=${user.avatar.url}&gender=${user.gender}`;
+  const path = `${process.env.WEBSITE_URL}?token=${token}&id=${user[idPath]}&name=${user.name}&avatar=${user.avatar.url}&gender=${user.gender}`;
   res.redirect(path);
 };
 
