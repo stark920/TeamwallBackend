@@ -1,15 +1,17 @@
+const console = require('./console');
+
 const resError = {
   // 正式環境錯誤
   prod(err, res) {
     if (err.isOperational) {
       res.status(err.statusCode).json({
-        message: err.message
+        message: err.message,
       });
     } else {
       console.error('出現重大錯誤', err);
       res.status(500).json({
         status: 'error',
-        message: '系統錯誤，請洽系統管理員'
+        message: '系統錯誤，請洽系統管理員',
       });
     }
   },
@@ -18,9 +20,9 @@ const resError = {
     res.status(err.statusCode).json({
       message: err.message,
       error: err,
-      stack: err.stack
+      stack: err.stack,
     });
-  }
-}
+  },
+};
 
 module.exports = resError;

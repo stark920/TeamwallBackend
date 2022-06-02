@@ -2,26 +2,27 @@ const jwt = require('jsonwebtoken');
 const appError = require('./appError');
 const handleErrorAsync = require('./handleErrorAsync');
 const User = require('../models/userModel');
-const dotenv = require('dotenv');
-dotenv.config({ path: '../config.env' });
+
+const idPath = '_id';
 
 // 檢查 token
 const isAuth = handleErrorAsync(async (req, res, next) => {
-  let token;
-
-  const authorization = req.headers?.authorization;
-
-  if (authorization && authorization.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
+  if (!req.headers.authorization) {
+    return appError(401, '未提供授權資訊', next);
   }
+  const [tokenType, token] = req.headers.authorization.split(' ');
 
-  if (!token) {
-    return appError(401, '您尚未登入', next);
+  if (tokenType !== 'Bearer' || !token) {
+    return appError(401, '授權資料異常', next);
   }
 
   const decodedToken = await new Promise((resolve, reject) => {
     jwt.verify(token, process.env.JWT_SECRET, (error, payload) => {
-      error ? reject(appError(401, '未授權', next)) : resolve(payload);
+      if (error) {
+        reject(appError(401, '未授權', next));
+      } else {
+        resolve(payload);
+      }
     });
   });
 
@@ -35,34 +36,36 @@ const isAuth = handleErrorAsync(async (req, res, next) => {
 
   req.user = currentUser;
 
-  next();
+  return next();
 });
 
 // 一般登入 回傳json
 const generateSendJWT = (user, statusCode, res) => {
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+  const token = jwt.sign({ id: user[idPath] }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_DAY,
   });
 
-  res.set('Authorization', 'Bearer ' + token);
-  const { _id, name, avatar, gender } = user;
+  res.set('Authorization', `Bearer ${token}`);
+  const {
+    _id, name, avatar, gender,
+  } = user;
   res.status(statusCode).send({
     status: true,
     data: {
       id: _id,
       name,
       avatar: avatar.url,
-      gender
+      gender,
     },
   });
 };
 
 // 第三方登入 回傳轉址
 const generateUrlJWT = (user, res) => {
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+  const token = jwt.sign({ id: user[idPath] }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_DAY,
   });
-  const path = `https://stark920.github.io/TeamWall/#/callback?token=${token}&id=${user._id}&name=${user.name}&avatar=${user.avatar.url}&gender=${user.gender}`;
+  const path = `${process.env.WEBSITE_URL}/#/callback?token=${token}&id=${user[idPath]}&name=${user.name}&avatar=${user.avatar.url}&gender=${user.gender}`;
   res.redirect(path);
 };
 

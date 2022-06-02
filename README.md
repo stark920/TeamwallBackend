@@ -11,6 +11,12 @@ Install packages:
 ```sh
 npm install
 ```
+
+Setting Environment Variables
+```sh
+cp sample.env config.env
+```
+
 Run Service:
 
 ```sh
@@ -57,11 +63,11 @@ npm run swagger
 
 ## Variables
 
-The environment variables can be found and modified in the `.env` file. They come with these default values:
+The environment variables sample can be found in the `sample.env` file. Please copy it and named as `config.env`. They come with these default values:
 
 ```bash
 # mongodb
-DATABASE_COMPASS=
+DATABASE_URL=
 DATABASE_PASSWORD=
 # upload images to imgur
 IMGUR_ACCESS_TOKEN=

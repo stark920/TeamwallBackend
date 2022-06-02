@@ -1,11 +1,14 @@
 const express = require('express');
+
 const router = express.Router();
 const upload = require('../service/upload');
-const postsControl = require("../controllers/posts");
-const { isAuth } = require("../service/auth");
+const postsControl = require('../controllers/posts');
+const { isAuth } = require('../service/auth');
 
 // 取得所有貼文
 router.get(
+  '/',
+  isAuth,
   /**
    * #swagger.tags = ['Posts']
    * #swagger.summary = '取得所有貼文'
@@ -84,11 +87,12 @@ router.get(
         }
       }
    */
-  '/',
-  isAuth,
-  postsControl.getPosts
-)
+  postsControl.getPosts,
+);
+
 router.get(
+  '/:id',
+  isAuth,
   /**
    * #swagger.tags = ['Posts']
    * #swagger.summary = '取得單筆貼文'
@@ -105,7 +109,7 @@ router.get(
               name: ''
             },
             content: '',
-            imgage: [],
+            image: [],
             likes: [],
           }
         }
@@ -118,8 +122,13 @@ router.get(
         }
       }
    */
-  '/:id', isAuth, postsControl.getPost);
+  postsControl.getPost,
+);
+
 router.post(
+  '/',
+  isAuth,
+  upload.array('photos', 10),
   /**
    * #swagger.tags = ['Posts']
    * #swagger.summary = '新增單筆貼文'
@@ -144,7 +153,7 @@ router.post(
               name: ''
             },
             content: '',
-            imgage: [],
+            image: [],
             likes: [],
           }
         }
@@ -157,8 +166,12 @@ router.post(
         }
       }
    */
-  '/', isAuth, upload.array('photos', 10), postsControl.postPost);
+  postsControl.postPost,
+);
+
 router.patch(
+  '/:id',
+  isAuth,
   /**
    * #swagger.tags = ['Posts']
    * #swagger.summary = '更新單筆貼文'
@@ -184,7 +197,7 @@ router.patch(
               name: ''
             },
             content: '',
-            imgage: [],
+            image: [],
             likes: [],
           }
         }
@@ -197,20 +210,27 @@ router.patch(
         }
       }
    */
-  '/:id', isAuth, postsControl.patchPost);
+  postsControl.patchPost,
+);
+
 router.delete(
+  '/delete/:id',
+  isAuth,
   /**
    * #swagger.tags = ['Posts']
    * #swagger.summary = '刪除單筆貼文'
    */
-  '/delete/:id', isAuth, postsControl.deletePost);
+  postsControl.deletePost,
+);
 
 // ＊＊＊測試用＊＊＊ 刪除所有貼文資料
 router.delete(
+  '/deleteAll',
   /**
    * #swagger.tags = ['Posts ＊＊＊測試用＊＊＊']
    * #swagger.summary = '刪除所有貼文'
    */
-  '/deleteAll', postsControl.deletePosts);
+  postsControl.deletePosts,
+);
 
 module.exports = router;

@@ -1,40 +1,38 @@
+const mongoose = require('mongoose');
 const Post = require('../models/postModel');
-const Like = require('../models/likesModel')
-const Comment = require('../models/commentModel')
-const { appError, handleErrorAsync } = require("../service");
+const Like = require('../models/likesModel');
+const Comment = require('../models/commentModel');
+const { appError, handleErrorAsync } = require('../service');
 const Imgur = require('../utils/imgur');
-const mongoose = require('mongoose')
 
 const posts = {
   getPosts: handleErrorAsync(async (req, res, next) => {
     // sort
     const timeSort = req.query.timeSort === 'old' ? 1 : -1;
     const likesSort = req.query.likesSort === 'hot' ? -1 : '';
-    const postsSort = {likesNum: likesSort, createdAt: timeSort}
+    const postsSort = { likesNum: likesSort, createdAt: timeSort };
     if (!likesSort) delete postsSort.likesNum;
-    
-    const regexEscape = (str) => {
-      return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-    } 
+
+    const regexEscape = (str) => str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
     // search
     const search = req.query.search
-      ? {content: new RegExp(regexEscape(req.query.search))}
-      : {}
+      ? { content: new RegExp(regexEscape(req.query.search)) }
+      : {};
     // records
     const queryRecords = {
       limit: req.query.limit,
       skip: req.query.skip,
-    }
+    };
     // current user
-    const currentUser = req.user
+    const currentUser = req.user;
 
-    let posts = await Post.aggregate([
+    const posts = await Post.aggregate([
       {
         $addFields: {
-          likesNum:  {
-            $size: '$likes'
-          }
-        }
+          likesNum: {
+            $size: '$likes',
+          },
+        },
       },
       {
         $match: search,
@@ -42,8 +40,8 @@ const posts = {
       {
         $sort: postsSort,
       },
-      {$skip: Number(queryRecords.skip) || 0},
-      {$limit: Number(queryRecords.limit) || 10}, // default post number with 10
+      { $skip: Number(queryRecords.skip) || 0 },
+      { $limit: Number(queryRecords.limit) || 10 }, // default post number with 10
       {
         $lookup: {
           from: 'comments',
@@ -53,8 +51,8 @@ const posts = {
             userId: '$userId',
           },
           pipeline: [
-            {$sort: {createAt: -1}}, // comments new -> old
-            {$limit: 10},
+            { $sort: { createAt: -1 } }, // comments new -> old
+            { $limit: 10 },
             {
               $addFields: {
                 actions: {
@@ -83,23 +81,23 @@ const posts = {
                     $project: {
                       _id: 1,
                       name: 1,
-                      avatar: '$avatar.url'
+                      avatar: '$avatar.url',
                     },
                   },
                 ],
                 as: 'userId',
               },
             },
-            {$unwind: '$userId'},
+            { $unwind: '$userId' },
             {
               $project: {
                 _id: 1,
                 content: 1,
                 userId: 1,
                 createdAt: 1,
-                actions: 1
+                actions: 1,
               },
-            }
+            },
           ],
           as: 'comments',
         },
@@ -121,31 +119,31 @@ const posts = {
           as: 'userId',
         },
       },
-      {$unwind: '$userId'},
-    ])
+      { $unwind: '$userId' },
+    ]);
 
-    res.send({status: true, data: posts})
+    res.send({ status: true, data: posts });
   }),
   getPost: handleErrorAsync(async (req, res, next) => {
     const post = await Post.find({ _id: req.params.id }).populate({
       path: 'userId',
-      select: 'name avatar.url'
+      select: 'name avatar.url',
     }).populate({
       path: 'comments',
-      select: 'content -postId'
+      select: 'content -postId',
     });
     // 無資料，回傳空陣列
     res.send({ status: true, data: post });
   }),
   postPost: handleErrorAsync(async (req, res, next) => {
     if (req.body.content === undefined) return appError(400, '需要 content 欄位', next);
-    if (req.body.content === "") return appError(400, 'content 不能為空值', next);
+    if (req.body.content === '') return appError(400, 'content 不能為空值', next);
     const data = {
       userId: req.user._id,
-      content: req.body.content
+      content: req.body.content,
     };
     if (req?.files && req.files.length > 0) {
-      data.image = await Imgur.upload(req.files)
+      data.image = await Imgur.upload(req.files);
     }
     const newPost = await Post.create({
       ...data,
@@ -156,16 +154,16 @@ const posts = {
     const post = await Post.findById(req.params.id);
     if (!post) return appError(400, '無此貼文', next);
     if (req.body.content === undefined) return appError(400, '需要 content 欄位', next);
-    if (req.body.content === "") return appError(400, 'content 不能為空值', next);
+    if (req.body.content === '') return appError(400, 'content 不能為空值', next);
     const updatePost = await Post.findByIdAndUpdate(req.params.id, { content: req.body.content }).populate({
       path: 'userId',
-      select: 'name avatar'
+      select: 'name avatar',
     });
     res.send({ status: true, data: updatePost });
   }),
   deletePosts: handleErrorAsync(async (req, res, next) => {
     const posts = await Post.deleteMany({});
-    const comments = await Comment.deleteMany({})
+    const comments = await Comment.deleteMany({});
 
     res.send({
       status: true,
@@ -173,27 +171,27 @@ const posts = {
         deletePost: posts,
         deleteComments: comments,
       },
-    })
+    });
   }),
   deletePost: handleErrorAsync(async (req, res, next) => {
     const post = await Post.deleteOne({ _id: req.params.id });
     const comments = await Comment.deleteMany({
       postId: mongoose.Types.ObjectId(req.params.id),
-    })
+    });
     const likes = await Like.updateMany({
       $pullAll: {
-        posts: [{_id: req.params.id}],
-      }
-    })
-    res.send({ 
-      status: true, 
+        posts: [{ _id: req.params.id }],
+      },
+    });
+    res.send({
+      status: true,
       data: {
         deletePost: post,
         deleteComments: comments,
-        deleteLikes: likes
-      } 
+        deleteLikes: likes,
+      },
     });
-  })
-}
+  }),
+};
 
 module.exports = posts;

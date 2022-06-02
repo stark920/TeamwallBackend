@@ -1,10 +1,13 @@
 const express = require('express');
+
 const router = express.Router();
 const likesControl = require('../controllers/likes');
 const { isAuth } = require('../service');
 
 // 查詢
 router.get(
+  '/',
+  isAuth,
   /**
    * #swagger.tags = ['Likes']
    * #swagger.summary = '取得某人喜愛貼文'
@@ -49,10 +52,13 @@ router.get(
         }
       }
    */
-  '/', isAuth, likesControl.getLikes);
+  likesControl.getLikes,
+);
 
-//新增-移除
+// 新增-移除
 router.post(
+  '/likePost',
+  isAuth,
   /**
    * #swagger.tags = ['Likes']
    * #swagger.summary = '收藏/取消 喜愛貼文'
@@ -87,7 +93,7 @@ router.post(
         }
       }
    */
-  '/likePost', isAuth, likesControl.postAndCancelLike);
-
+  likesControl.postAndCancelLike,
+);
 
 module.exports = router;

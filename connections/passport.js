@@ -3,6 +3,8 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 const DiscordStrategy = require('passport-discord').Strategy;
 
+const jsonPath = '_json';
+
 passport.use(
   new GoogleStrategy(
     {
@@ -11,10 +13,8 @@ passport.use(
       callbackURL:
         'https://secret-scrubland-17327.herokuapp.com/users/google/callback',
     },
-    function (accessToken, refreshToken, profile, cb) {
-      return cb(null, profile._json);
-    }
-  )
+    ((accessToken, refreshToken, profile, cb) => cb(null, profile[jsonPath])),
+  ),
 );
 
 passport.use(
@@ -26,10 +26,8 @@ passport.use(
         'https://secret-scrubland-17327.herokuapp.com/users/facebook/callback',
       profileFields: ['id', 'displayName', 'photos', 'email'],
     },
-    function (accessToken, refreshToken, profile, cb) {
-      return cb(null, profile._json);
-    }
-  )
+    ((accessToken, refreshToken, profile, cb) => cb(null, profile[jsonPath])),
+  ),
 );
 
 passport.use(
@@ -40,8 +38,6 @@ passport.use(
       callbackURL: 'https://secret-scrubland-17327.herokuapp.com/users/discord/callback',
       scope: ['identify', 'email'],
     },
-    function (accessToken, refreshToken, profile, cb) {
-      return cb(null, profile);
-    }
-  )
+    ((accessToken, refreshToken, profile, cb) => cb(null, profile)),
+  ),
 );
