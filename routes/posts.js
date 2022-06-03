@@ -134,13 +134,16 @@ router.post(
    * #swagger.summary = '新增單筆貼文'
    * #swagger.description = '如為登入狀態，可新增單筆貼文'
    * #swagger.security = [{ apiKeyAuth: []}]
-   * #swagger.parameters['body'] = {
+   * #swagger.parameters['content'] = {
       in: 'body',
       description: 'formdata 資料格式',
       schema: {
-        userId: 'jwt 所取得的 id',
         content: '測試貼文'
       }
+    }
+   * #swagger.parameters['photos'] = {
+      in: 'files',
+      description: '圖片檔案，上限 10 張，且每張圖片不能超過 2 MB',
     }
    * #swagger.responses[200] = {
         description: '取得單筆貼文資料',
@@ -153,7 +156,12 @@ router.post(
               name: ''
             },
             content: '',
-            image: [],
+            image: [
+              {
+                deleteHash: '',
+                url: ''
+              }
+            ],
             likes: [],
           }
         }
@@ -164,6 +172,9 @@ router.post(
           status: false,
           message: '錯誤訊息'
         }
+      }
+   * #swagger.responses[500] = {
+        description: 'imgur 所回傳的錯誤訊息，以 console 回報錯誤',
       }
    */
   handleErrorAsync(postsControl.postPost),

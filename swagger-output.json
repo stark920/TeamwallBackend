@@ -193,22 +193,24 @@
         "description": "如為登入狀態，可新增單筆貼文",
         "parameters": [
           {
-            "name": "body",
+            "name": "content",
             "in": "body",
             "description": "formdata 資料格式",
             "schema": {
               "type": "object",
               "properties": {
-                "userId": {
-                  "type": "string",
-                  "example": "jwt 所取得的 id"
-                },
                 "content": {
                   "type": "string",
                   "example": "測試貼文"
                 }
               }
             }
+          },
+          {
+            "name": "photos",
+            "in": "files",
+            "description": "圖片檔案，上限 10 張，且每張圖片不能超過 2 MB",
+            "type": "string"
           }
         ],
         "responses": {
@@ -245,10 +247,21 @@
                       "type": "string",
                       "example": ""
                     },
-                    "imgage": {
+                    "image": {
                       "type": "array",
-                      "example": [],
-                      "items": {}
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "deleteHash": {
+                            "type": "string",
+                            "example": ""
+                          },
+                          "url": {
+                            "type": "string",
+                            "example": ""
+                          }
+                        }
+                      }
                     },
                     "likes": {
                       "type": "array",
@@ -281,6 +294,9 @@
                 "name": "main"
               }
             }
+          },
+          "500": {
+            "description": "imgur 所回傳的錯誤訊息，以 console 回報錯誤"
           }
         },
         "security": [
@@ -339,7 +355,7 @@
                       "type": "string",
                       "example": ""
                     },
-                    "imgage": {
+                    "image": {
                       "type": "array",
                       "example": [],
                       "items": {}
@@ -455,7 +471,7 @@
                       "type": "string",
                       "example": ""
                     },
-                    "imgage": {
+                    "image": {
                       "type": "array",
                       "example": [],
                       "items": {}
@@ -660,61 +676,6 @@
             }
           }
         }
-      }
-    },
-    "/users/sign-out": {
-      "delete": {
-        "tags": [
-          "Users"
-        ],
-        "summary": "登出會員",
-        "description": "無需夾帶資料，需要檢查 token",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "修改登入狀態為 false",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "status": {
-                  "type": "boolean",
-                  "example": true
-                },
-                "message": {
-                  "type": "string",
-                  "example": "登出成功"
-                }
-              },
-              "xml": {
-                "name": "main"
-              }
-            }
-          },
-          "401": {
-            "description": "回傳錯誤訊息",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "status": {
-                  "type": "boolean",
-                  "example": false
-                },
-                "message": {
-                  "type": "string",
-                  "example": "錯誤原因"
-                }
-              },
-              "xml": {
-                "name": "main"
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ]
       }
     },
     "/users/sign-up": {
@@ -988,7 +949,7 @@
     "/users/follows": {
       "get": {
         "tags": [
-          "Users ＊＊＊測試用＊＊＊"
+          "Users"
         ],
         "summary": "取得追蹤名單",
         "description": "",
@@ -999,7 +960,7 @@
     "/users/{id}/follow": {
       "post": {
         "tags": [
-          "Users ＊＊＊測試用＊＊＊"
+          "Users"
         ],
         "summary": "新增追蹤名單",
         "description": "",
