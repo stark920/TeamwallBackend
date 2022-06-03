@@ -205,11 +205,20 @@ const user = {
   getFollows: handleErrorAsync(async (req, res, next) => {
     const list = await User.find({
       'followers.user': { $in: [req.user._id] },
-    }).populate({
-      path: 'user',
-      select: 'name _id avatar',
-    });
-    res.send({ status: true, data: list });
+    }).select('-_id name avatar followers');
+    const followList = list.map((item) => {
+      const newList = {
+        name: item.name,
+        avatar: item.avatar.url,
+      };
+      item.followers.forEach((followItem) => {
+        if (followItem.user._id.toString() === req.user.id) {
+          newList.followCreatedAt = followItem.createdAt;
+        }
+      })
+      return newList
+    })
+    res.send({ status: true, data: followList });
   }),
   // 追蹤用戶
   postFollow: handleErrorAsync(async (req, res, next) => {
