@@ -140,7 +140,10 @@ const user = {
     res.sendFile(path.join(__dirname, '../public/emailCheckSuccess.html'));
   },
   // 修改個人資料
-  async updateProfile(req, res) {
+  async updateProfile(req, res, next) {
+    const { errors } = validationResult(req);
+    if (errors.length > 0) return appError(400, '輸入資料有誤', next);
+    
     let avatar;
     if (req.file) {
       if (req.user.avatar?.deleteHash) {
