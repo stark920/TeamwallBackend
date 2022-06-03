@@ -1,6 +1,6 @@
 const { body, param } = require('express-validator');
 
-const v = {
+const rules = {
   email: body('email')
     .notEmpty()
     .bail()
@@ -34,15 +34,15 @@ const v = {
   passwordConfirm: body('passwordConfirm')
     .custom((value, { req }) => value === req.body.password),
   profileId: param('id')
-    .isMongoId()
+    .isMongoId(),
 };
 
 const userValidator = {
-  signUp: [v.email, v.password, v.name],
-  signIn: [v.email, v.password],
-  updateProfile: [v.name, v.gender],
-  updatePassword: [v.password, v.passwordConfirm],
-  getProfile: [v.profileId]
+  signUp: [rules.email, rules.password, rules.name],
+  signIn: [rules.email, rules.password],
+  updateProfile: [rules.name, rules.gender],
+  updatePassword: [rules.password, rules.passwordConfirm],
+  getProfile: [rules.profileId],
 };
 
 module.exports = userValidator;

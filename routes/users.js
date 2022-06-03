@@ -1,13 +1,17 @@
 const express = require('express');
+
 const router = express.Router();
-const userValidator = require('../validates/users');
-const userControl = require('../controllers/users');
 const passport = require('passport');
-const { isAuth, upload } = require('../service');
 const cors = require('cors');
+const userValidator = require('../validator/users');
+const userControl = require('../controllers/users');
+const { isAuth, upload, handleErrorAsync } = require('../service');
 
 // 登入權限測試
 router.get(
+  '/check',
+  isAuth,
+  cors({ exposedHeaders: 'Authorization' }),
   /**
    * #swagger.tags = ['Users']
    * #swagger.summary = '登入權限測試'
@@ -31,14 +35,14 @@ router.get(
         }
       }
    */
-  '/check',
-  isAuth,
-  cors({ exposedHeaders: 'Authorization' }),
-  userControl.check
+  handleErrorAsync(userControl.check),
 );
 
 // 登入會員
 router.post(
+  '/sign-in',
+  cors({ exposedHeaders: 'Authorization' }),
+  userValidator.signIn,
   /**
    * #swagger.tags = ['Users']
    * #swagger.summary = '登入會員'
@@ -66,41 +70,13 @@ router.post(
         }
       }
    */
-  '/sign-in',
-  cors({ exposedHeaders: 'Authorization' }),
-  userValidator.signIn,
-  userControl.signIn
-);
-
-// 登出會員
-router.delete(
-  /**
-   * #swagger.tags = ['Users']
-   * #swagger.summary = '登出會員'
-   * #swagger.description = '無需夾帶資料，需要檢查 token'
-   * #swagger.security = [{ apiKeyAuth: []}]
-   * #swagger.responses[200] = {
-        description: '修改登入狀態為 false',
-        schema: {
-          status: true,
-          message: '登出成功'
-        }
-      }
-   * #swagger.responses[401] = {
-        description: '回傳錯誤訊息',
-        schema: {
-          status: false,
-          message: '錯誤原因'
-        }
-      }
-   */
-  '/sign-out',
-  isAuth,
-  userControl.signOut
+  handleErrorAsync(userControl.signIn),
 );
 
 // 註冊會員
 router.post(
+  '/sign-up',
+  userValidator.signUp,
   /**
    * #swagger.tags = ['Users']
    * #swagger.summary = '註冊會員'
@@ -129,22 +105,25 @@ router.post(
         }
       }
    */
-  '/sign-up',
-  userValidator.signUp,
-  userControl.signUp
+  handleErrorAsync(userControl.signUp),
 );
 
-router.get('/checkCode', userControl.checkCode);
+// 檢查註冊信
+router.get('/checkCode', handleErrorAsync(userControl.checkCode));
 
 // 更新使用者資料
 router.patch(
+  '/profile',
+  isAuth,
+  upload.single('avatar'),
+  userValidator.updateProfile,
   /**
    * #swagger.auto = false
    * #swagger.tags = ['Users']
    * #swagger.summary = '更新使用者資料'
    * #swagger.description = '夾帶圖片時需使用 FormData 格式'
    * #swagger.security = [{ apiKeyAuth: []}]
-   * #swagger.consumes = ['multipart/form-data']  
+   * #swagger.consumes = ['multipart/form-data']
    * #swagger.parameters['avatar'] = {
         in: 'formData',
         type: 'file',
@@ -177,15 +156,14 @@ router.patch(
         }
       }
    */
-  '/profile',
-  isAuth,
-  upload.single('avatar'),
-  userValidator.updateProfile,
-  userControl.updateProfile
+  handleErrorAsync(userControl.updateProfile),
 );
 
 // 更新使用者密碼
 router.patch(
+  '/profile/pwd',
+  isAuth,
+  userValidator.updatePassword,
   /**
    * #swagger.tags = ['Users']
    * #swagger.summary = '修改密碼'
@@ -214,70 +192,70 @@ router.patch(
         }
       }
    */
-  '/profile/pwd',
-  isAuth,
-  userValidator.updatePassword,
-  userControl.updatePassword
+  handleErrorAsync(userControl.updatePassword),
 );
 
 // google登入
 router.get('/google', passport.authenticate('google', {
-  scope: ['email', 'profile']
+  scope: ['email', 'profile'],
 }));
 // google callback
 router.get('/google/callback', passport.authenticate('google', {
   session: false,
-}), userControl.google);
+}), handleErrorAsync(userControl.google));
 
 // facebook登入
 router.get('/facebook', passport.authenticate('facebook'));
 // facebook callback
 router.get('/facebook/callback', passport.authenticate('facebook', {
   session: false,
-}), userControl.facebook);
+}), handleErrorAsync(userControl.facebook));
 
 // discord登入
 router.get('/discord', passport.authenticate('discord'));
 // discord callback
 router.get('/discord/callback', passport.authenticate('discord', {
   session: false,
-}), userControl.discord);
+}), handleErrorAsync(userControl.discord));
 
-// ＊＊＊測試用＊＊＊ 取得追蹤名單
+// 取得追蹤名單
 router.get(
-  /**
-   * #swagger.tags = ['Users ＊＊＊測試用＊＊＊']
-   * #swagger.summary = '取得追蹤名單'
-   */
   '/follows',
   isAuth,
-  userControl.getFollows
+  /**
+   * #swagger.tags = ['Users']
+   * #swagger.summary = '取得追蹤名單'
+   */
+  handleErrorAsync(userControl.getFollows),
 );
 
 // 新增追蹤
 router.post(
-  /**
-   * #swagger.tags = ['Users ＊＊＊測試用＊＊＊']
-   * #swagger.summary = '新增追蹤名單'
-   */
   '/:id/follow',
   isAuth,
-  userControl.postFollow
+  /**
+   * #swagger.tags = ['Users']
+   * #swagger.summary = '新增追蹤名單'
+   */
+  handleErrorAsync(userControl.postFollow),
 );
 
 // 刪除追蹤
 router.delete(
+  '/:id/follow',
+  isAuth,
   /**
    * #swagger.tags = ['Users ＊＊＊測試用＊＊＊']
    * #swagger.summary = '刪除追蹤名單'
    */
-  '/:id/follow',
-  isAuth,
-  userControl.deleteFollow
+  handleErrorAsync(userControl.deleteFollow),
 );
 
 // 取得指定用戶資訊
 router.get(
+  '/:id',
+  isAuth,
+  userValidator.getProfile,
   /**
    * #swagger.tags = ['Users']
    * #swagger.summary = '取得指定用戶資訊'
@@ -298,10 +276,7 @@ router.get(
         }
       }
    */
-  '/:id',
-  isAuth,
-  userValidator.getProfile,
-  userControl.getProfile
+  handleErrorAsync(userControl.getProfile),
 );
 
 module.exports = router;

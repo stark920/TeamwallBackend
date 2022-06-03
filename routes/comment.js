@@ -1,9 +1,12 @@
-const express = require('express')
-const router = express.Router()
-const commentController = require('../controllers/comments')
-const {isAuth} = require('../service/auth')
+const express = require('express');
+
+const router = express.Router();
+const commentController = require('../controllers/comments');
+const { isAuth, handleErrorAsync } = require('../service');
 
 router.get(
+  '/:postId',
+  isAuth,
   /**
    *  #swagger.tags = ['Comments']
    *  #swagger.summary = '取得留言'
@@ -24,7 +27,7 @@ router.get(
         in: 'query',
         description: 'timeSort=asc (舊到新) or (新到舊)',
       }
-   *  #swagger.security = [{ apiKeyAuth: []}] 
+   *  #swagger.security = [{ apiKeyAuth: []}]
    *  #swagger.responses[200] = {
         description: "取得貼文資料",
         schema: {
@@ -55,12 +58,12 @@ router.get(
         }
       }
    */
-  '/:postId',
-  isAuth,
-  commentController.getMoreComments
-)
+  handleErrorAsync(commentController.getMoreComments),
+);
 
 router.post(
+  '/:postId',
+  isAuth,
   /**
    * #swagger.tags = ['Comments']
    * #swagger.summary = '新增留言'
@@ -97,12 +100,12 @@ router.post(
         }
       }
    */
-  '/:postId',
-  isAuth,
-  commentController.postComments
-)
+  handleErrorAsync(commentController.postComments),
+);
 
 router.patch(
+  '/:commentId',
+  isAuth,
   /**
    *  #swagger.tags = ['Comments']
    *  #swagger.summary = '修改留言'
@@ -118,7 +121,7 @@ router.patch(
           content: '更新的留言'
         }
       }
-   *  #swagger.security = [{ apiKeyAuth: []}] 
+   *  #swagger.security = [{ apiKeyAuth: []}]
    *  #swagger.responses[200] = {
         description: "修改後的comment",
         schema: {
@@ -140,12 +143,12 @@ router.patch(
         }
       }
    */
-  '/:commentId',
-  isAuth,
-  commentController.patchComment
-)
+  handleErrorAsync(commentController.patchComment),
+);
 
 router.delete(
+  '/delete/:commentId',
+  isAuth,
   /**
    *  #swagger.tags = ['Comments']
    *  #swagger.summary = '刪除一則留言'
@@ -154,7 +157,7 @@ router.delete(
         in: 'path',
         description: '留言ID',
       }
-   *  #swagger.security = [{ apiKeyAuth: []}] 
+   *  #swagger.security = [{ apiKeyAuth: []}]
    *  #swagger.responses[200] = {
         description: "修改後的comment",
         schema: {
@@ -176,9 +179,7 @@ router.delete(
         }
       }
    */
-  '/delete/:commentId',
-  isAuth,
-  commentController.deleteComment
-)
+  handleErrorAsync(commentController.deleteComment),
+);
 
-module.exports = router
+module.exports = router;

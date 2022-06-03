@@ -971,6 +971,65 @@
         "responses": {}
       }
     },
+    "/users/discord": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/users/discord/callback": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/users/follows": {
+      "get": {
+        "tags": [
+          "Users ＊＊＊測試用＊＊＊"
+        ],
+        "summary": "取得追蹤名單",
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/users/{id}/follow": {
+      "post": {
+        "tags": [
+          "Users ＊＊＊測試用＊＊＊"
+        ],
+        "summary": "新增追蹤名單",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      },
+      "delete": {
+        "tags": [
+          "Users ＊＊＊測試用＊＊＊"
+        ],
+        "summary": "刪除追蹤名單",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
+    },
     "/users/{id}": {
       "get": {
         "tags": [
@@ -1031,51 +1090,6 @@
             "apiKeyAuth": []
           }
         ]
-      }
-    },
-    "/users/follows": {
-      "get": {
-        "tags": [
-          "Users ＊＊＊測試用＊＊＊"
-        ],
-        "summary": "取得追蹤名單",
-        "description": "",
-        "parameters": [],
-        "responses": {}
-      }
-    },
-    "/users/{id}/follow": {
-      "post": {
-        "tags": [
-          "Users ＊＊＊測試用＊＊＊"
-        ],
-        "summary": "新增追蹤名單",
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {}
-      },
-      "delete": {
-        "tags": [
-          "Users ＊＊＊測試用＊＊＊"
-        ],
-        "summary": "刪除追蹤名單",
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {}
       }
     },
     "/likes/": {

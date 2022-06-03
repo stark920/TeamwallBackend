@@ -4,27 +4,27 @@ const logger = require('morgan');
 const cors = require('cors');
 const path = require('path');
 const swaggerUI = require('swagger-ui-express');
-const swaggerFile = require('./swagger-output.json');
-const resError = require('./service/resError');
 const dotenv = require('dotenv');
-dotenv.config({path: './config.env'});
+const swaggerFile = require('./swagger-output.json');
+const { resError, console } = require('./service');
 
-process.on('uncaughtException', err => {
-	console.error('Uncaught Exception！')
+dotenv.config({ path: './config.env' });
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception！');
   console.error(err);
-	process.exit(1);
+  process.exit(1);
 });
 
-// 連線 mongodb
 require('./connections/mongodb');
-// Google 登入
-require('./connections/passport')
+require('./connections/passport');
 
-const postsRouter = require('./routes/posts'); //管理Router
+const postsRouter = require('./routes/posts');
 const usersRouter = require('./routes/users');
 const likesRouter = require('./routes/likes');
 const chatRouter = require('./routes/chat');
-const commentRouter = require('./routes/comment')
+const commentRouter = require('./routes/comment');
+
 const app = express();
 
 app.use(logger('dev'));
@@ -38,31 +38,30 @@ app.use('/posts', postsRouter);
 app.use('/users', usersRouter);
 app.use('/likes', likesRouter);
 app.use('/chat', chatRouter);
-app.use('/comment', commentRouter)
+app.use('/comment', commentRouter);
 app.use('/api-doc', swaggerUI.serve, swaggerUI.setup(swaggerFile));
 
-app.use(function (req, res, next) {
+app.use((req, res) => {
   res.status(404).json({
     status: false,
     message: '您的路由不存在',
   });
 });
-
-// express 錯誤處理
-app.use(function(err, req, res, next) {
+app.use((err, req, res) => {
+  const error = err;
   // dev
-  err.statusCode = err.statusCode || 500;
+  error.statusCode = error.statusCode || 500;
+
   if (process.env.NODE_ENV === 'dev') {
-    return resError.dev(err, res);
-  } 
-  // production
-  if (err.name === 'ValidationError') {
-    //mongoose 的欄位錯誤 error.name
-    err.message = '資料欄位未填寫正確，請重新輸入！';
-    err.isOperational = true;
-    return resError.prod(err, res)
+    return resError.dev(error, res);
   }
-  resError.prod(err, res);
+  // production
+  if (error.name === 'ValidationError') {
+    error.message = '資料欄位未填寫正確，請重新輸入！';
+    error.isOperational = true;
+    return resError.prod(error, res);
+  }
+  return resError.prod(error, res);
 });
 
 process.on('unhandledRejection', (err, promise) => {

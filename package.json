@@ -6,8 +6,9 @@
     "start": "node ./bin/www",
     "start:dev": "NODE_ENV=dev node ./bin/www",
     "start:pro": "NODE_ENV=production node ./bin/www",
-    "dev": "nodemon ./bin/www",
-    "swagger": "node ./swagger.js"
+    "dev": "nodemon NODE_ENV=dev ./bin/www",
+    "swagger": "node ./swagger.js",
+    "lint": "eslint . --ext .js --fix --ignore-path .gitignore"
   },
   "engines": {
     "node": "14.x"
@@ -38,6 +39,9 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "eslint": "^8.16.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.26.0"
   }
 }
