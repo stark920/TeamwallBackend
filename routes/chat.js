@@ -91,7 +91,7 @@ router.get('/all', async (req, res) => {
 });
 
 // 取得聊天記錄
-router.post(
+router.get(
   '/chat-record',
   isAuth,
   handleErrorAsync(async (req, res) => {

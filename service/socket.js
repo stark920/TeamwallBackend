@@ -18,7 +18,7 @@ module.exports = (server) => {
 
   // 驗證token
   io.use(async (socket, next) => {
-    const token = socket.handshake.query?.token;
+    const token = socket.handshake.auth?.token;
     if (!token) {
       return next(new Error('請重新登入'));
     }
@@ -53,18 +53,59 @@ module.exports = (server) => {
     return currentUser?.[idPath];
   };
 
+  const getHistory = async (room, lastTime) => {
+    let msgList = [];
+    if (lastTime) {
+      const [queryResult] = await ChatRoom.aggregate([
+        { $match: { $expr: { $eq: ['$_id', { $toObjectId: room }] } } },
+        {
+          $project: {
+            messages: 1,
+          },
+        },
+        {
+          $project: {
+            messages: {
+              $slice: [
+                {
+                  $filter: {
+                    input: '$messages',
+                    as: 'item',
+                    cond: {
+                      $lt: ['$$item.createdAt', new Date(lastTime)],
+                    },
+                  },
+                },
+                30,
+              ],
+            },
+          },
+        },
+      ]);
+      msgList = queryResult.messages;
+    } else {
+      msgList = await ChatRoom.find(
+        { _id: room },
+        { messages: { $slice: -30 } },
+      );
+      msgList = msgList[0]?.messages;
+    }
+    return msgList;
+  };
+
   // 建立連接
   io.of('/chat').on('connection', async (socket) => {
     const room = socket.handshake.query?.room;
-    const token = socket.handshake.query?.token;
+    const token = socket.handshake.auth?.token;
+    let userId = await getUserId(token);
+    userId = userId.toString();
     console.log('connection----', room);
     if (room) {
       socket.join(room);
     }
 
-    let userId = await getUserId(token);
-    userId = userId.toString();
-
+    const msgList = await getHistory(room);
+    socket.emit('history', msgList);
     socket.use(([payload], next) => {
       console.log('payload', payload);
       if (payload?.message?.length > 100) {
@@ -84,8 +125,6 @@ module.exports = (server) => {
       io.of('/chat')
         .to(room)
         .emit('chatMessage', { message, sender: userId, createdAt });
-      console.log('userInfo', room, userId);
-      console.log('傳來的訊息', msg);
     });
 
     // 使用者輸入中
@@ -95,47 +134,11 @@ module.exports = (server) => {
 
     // 歷史訊息
     socket.on('history', async (info) => {
-      console.log('history', info, room);
       const { lastTime } = info;
-      let msgList = [];
-      if (lastTime) {
-        console.log('lastTime', lastTime);
-        const [queryResult] = await ChatRoom.aggregate([
-          { $match: { $expr: { $eq: ['$_id', { $toObjectId: room }] } } },
-          {
-            $project: {
-              messages: 1,
-            },
-          },
-          {
-            $project: {
-              messages: {
-                $slice: [
-                  {
-                    $filter: {
-                      input: '$messages',
-                      as: 'item',
-                      cond: {
-                        $lt: ['$$item.createdAt', new Date(lastTime)],
-                      },
-                    },
-                  },
-                  30,
-                ],
-              },
-            },
-          },
-        ]);
-        msgList = queryResult.messages;
-      } else {
-        msgList = await ChatRoom.find(
-          { _id: room },
-          { messages: { $slice: -30 } },
-        );
-        msgList = msgList[0]?.messages;
-      }
-      socket.emit('history', msgList);
+      const historyMsgList = await getHistory(room, lastTime);
+      socket.emit('history', historyMsgList);
     });
+
     socket.on('leaveRoom', (currentRoom) => {
       console.log('leaveRoom~~~', currentRoom);
       socket.leave(currentRoom);
