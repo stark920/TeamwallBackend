@@ -1,62 +1,53 @@
-const User = require('../models/userModel');
 const uuid = require('uuid');
+const path = require('path');
+const bcrypt = require('bcrypt');
+const User = require('../models/userModel');
 const { generateUrlJWT } = require('./auth');
 
-const thirdPartySignIn = async (type, data, res) => {
-  const { id, email, name, picture } = data;
-  const key = `${type}Id`;
+const thirdPartySignIn = async (thirdPartyName, data, res) => {
+  const {
+    id, email, name, picture,
+  } = data;
 
-  // 先檢查email是否存在
+  const key = `${thirdPartyName}Id`;
+
   const userExisted = await User.findOne({ email }).select(
-    `+${key} +activeStatus`
+    `+${key} +activeStatus`,
   );
   const limit = await User.count();
   if (!userExisted && limit >= 500) {
-    res.sendFile(path.join(__dirname, '../public/emailLimitExceeded.html'));
-    return;
+    return res.sendFile(path.join(__dirname, '../public/emailLimitExceeded.html'));
   }
 
   let user;
-  // 更新登入狀態或建立使用者資料
+
   if (userExisted) {
-    // 已經有帳號
-    let data;
-    if (userExisted[key]) {
-      // 已經有註冊
-      data = { isLogin: true };
-    } else {
-      // 還沒註冊
+    let userStateData;
+    if (!userExisted[key]) {
       if (userExisted.activeStatus === 'none') {
-        // 有使用一般註冊但尚未啟用
-        data = { isLogin: true, activeStatus: 'third' };
+        userStateData = { activeStatus: 'third' };
       } else if (userExisted.activeStatus === 'meta') {
-        // 有使用一般註冊且完成啟用
-        data = { isLogin: true, activeStatus: 'both' };
-      } else {
-        // 有啟用第三方登入 或是 兩種登入方式都有啟用
-        data = { isLogin: true };
+        userStateData = { activeStatus: 'both' };
       }
-      data[key] = id;
+      userStateData[key] = id;
     }
-    await User.updateOne({ email }, data);
+    await User.updateOne({ email }, userStateData);
     user = userExisted;
   } else {
-    // 沒有帳號
-    const new_uuid = await uuid.v4();
-    const password = await bcrypt.hash(new_uuid, 12);
-    const createData = {
-      email: email,
-      name: name,
+    const randomPasswordBase = uuid.v4();
+    const password = await bcrypt.hash(randomPasswordBase, 12);
+    const newUserData = {
+      email,
+      name,
       avatar: {
         deleteHash: '',
         url: picture,
       },
       password,
-      isLogin: true,
       activeStatus: 'third',
     };
-    createData[key] = id;
-    user = await User.create(createData);
+    newUserData[key] = id;
+    user = await User.create(newUserData);
   }
   generateUrlJWT(user, res);
 };

@@ -15,12 +15,14 @@ const config = {
 const transporter = nodemailer.createTransport(config);
 
 // 傳送郵件
-const sendMail = (mail) => {
-  return new Promise((resolve, reject) => {
-    transporter.sendMail(mail, function (error, info) {
-      error ? reject(error) : resolve(info.response);
-    });
+const sendMail = (mail) => new Promise((resolve, reject) => {
+  transporter.sendMail(mail, (error, info) => {
+    if (error) {
+      reject(error);
+    } else {
+      resolve(info.response);
+    }
   });
-};
+});
 
 module.exports = sendMail;

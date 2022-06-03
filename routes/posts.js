@@ -1,11 +1,14 @@
 const express = require('express');
+
 const router = express.Router();
 const upload = require('../service/upload');
-const postsControl = require("../controllers/posts");
-const { isAuth } = require("../service/auth");
+const postsControl = require('../controllers/posts');
+const { isAuth, handleErrorAsync } = require('../service');
 
 // 取得所有貼文
 router.get(
+  '/',
+  isAuth,
   /**
    * #swagger.tags = ['Posts']
    * #swagger.summary = '取得所有貼文'
@@ -84,11 +87,12 @@ router.get(
         }
       }
    */
-  '/',
-  isAuth,
-  postsControl.getPosts
-)
+  handleErrorAsync(postsControl.getPosts),
+);
+
 router.get(
+  '/:id',
+  isAuth,
   /**
    * #swagger.tags = ['Posts']
    * #swagger.summary = '取得單筆貼文'
@@ -105,7 +109,7 @@ router.get(
               name: ''
             },
             content: '',
-            imgage: [],
+            image: [],
             likes: [],
           }
         }
@@ -118,20 +122,28 @@ router.get(
         }
       }
    */
-  '/:id', isAuth, postsControl.getPost);
+  handleErrorAsync(postsControl.getPost),
+);
+
 router.post(
+  '/',
+  isAuth,
+  upload.array('photos', 10),
   /**
    * #swagger.tags = ['Posts']
    * #swagger.summary = '新增單筆貼文'
    * #swagger.description = '如為登入狀態，可新增單筆貼文'
    * #swagger.security = [{ apiKeyAuth: []}]
-   * #swagger.parameters['body'] = {
+   * #swagger.parameters['content'] = {
       in: 'body',
       description: 'formdata 資料格式',
       schema: {
-        userId: 'jwt 所取得的 id',
         content: '測試貼文'
       }
+    }
+   * #swagger.parameters['photos'] = {
+      in: 'files',
+      description: '圖片檔案，上限 10 張，且每張圖片不能超過 2 MB',
     }
    * #swagger.responses[200] = {
         description: '取得單筆貼文資料',
@@ -144,7 +156,12 @@ router.post(
               name: ''
             },
             content: '',
-            imgage: [],
+            image: [
+              {
+                deleteHash: '',
+                url: ''
+              }
+            ],
             likes: [],
           }
         }
@@ -156,9 +173,16 @@ router.post(
           message: '錯誤訊息'
         }
       }
+   * #swagger.responses[500] = {
+        description: 'imgur 所回傳的錯誤訊息，以 console 回報錯誤',
+      }
    */
-  '/', isAuth, upload.array('photos', 10), postsControl.postPost);
+  handleErrorAsync(postsControl.postPost),
+);
+
 router.patch(
+  '/:id',
+  isAuth,
   /**
    * #swagger.tags = ['Posts']
    * #swagger.summary = '更新單筆貼文'
@@ -184,7 +208,7 @@ router.patch(
               name: ''
             },
             content: '',
-            imgage: [],
+            image: [],
             likes: [],
           }
         }
@@ -197,20 +221,27 @@ router.patch(
         }
       }
    */
-  '/:id', isAuth, postsControl.patchPost);
+  handleErrorAsync(postsControl.patchPost),
+);
+
 router.delete(
+  '/delete/:id',
+  isAuth,
   /**
    * #swagger.tags = ['Posts']
    * #swagger.summary = '刪除單筆貼文'
    */
-  '/delete/:id', isAuth, postsControl.deletePost);
+  handleErrorAsync(postsControl.deletePost),
+);
 
 // ＊＊＊測試用＊＊＊ 刪除所有貼文資料
 router.delete(
+  '/deleteAll',
   /**
    * #swagger.tags = ['Posts ＊＊＊測試用＊＊＊']
    * #swagger.summary = '刪除所有貼文'
    */
-  '/deleteAll', postsControl.deletePosts);
+  handleErrorAsync(postsControl.deletePosts),
+);
 
 module.exports = router;

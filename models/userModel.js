@@ -75,11 +75,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       select: false,
     },
-    isLogin: {
-      type: Boolean,
-      default: false,
-      select: false,
-    },
     activeStatus: {
       type: String,
       enum: ['none', 'meta', 'third', 'both'],
@@ -95,7 +90,7 @@ const userSchema = new mongoose.Schema(
   {
     versionKey: false,
     collection: 'Users',
-  }
+  },
 );
 
 const User = mongoose.model('user', userSchema);

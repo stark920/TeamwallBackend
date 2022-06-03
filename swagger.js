@@ -5,8 +5,8 @@ const endpointsFiles = ['./app.js'];
 const doc = {
   info: {
     title: 'MetaWall API',
-    version: "1.0.0",
-    description: 'this is api document'
+    version: '1.0.0',
+    description: 'this is api document',
   },
   host: 'localhost:3005',
   schemes: ['http', 'https'],
@@ -15,9 +15,9 @@ const doc = {
       type: 'apiKey',
       in: 'headers',
       name: 'authorization',
-      description: '請加上 API Token'
-    }
-  }
-}
+      description: '請加上 API Token',
+    },
+  },
+};
 
 swaggerAutogen(outputFile, endpointsFiles, doc);
