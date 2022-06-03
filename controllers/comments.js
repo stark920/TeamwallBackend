@@ -110,7 +110,7 @@ const commentController = {
 
     // if current user does not own the comment, no right for editing
     const currentUserId = currentUser[idPath].toString();
-    const ownerId = targetComment.userId.toString();
+    const ownerId = targetComment.userId[idPath].toString();
     if (currentUserId !== ownerId) {
       return appError(400, '無修改權限', next);
     }
@@ -133,7 +133,7 @@ const commentController = {
 
     // if current user does not own the comment, no right for deletion
     const currentUserId = currentUser[idPath].toString();
-    const ownerId = targetComment.userId.toString();
+    const ownerId = targetComment.userId[idPath].toString();
     if (currentUserId !== ownerId) {
       return appError(400, '無修改權限', next);
     }
