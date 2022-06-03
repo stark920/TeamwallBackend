@@ -199,19 +199,34 @@ const user = {
   },
   async getFollows(req, res) {
     const list = await User.find({
-      followers: { $in: [req.user[idPath]] },
-    }).populate({
-      path: 'user',
-      select: 'name _id avatar',
-    });
-    res.send({ status: true, data: list });
+      'followers.user': { $in: [req.user._id] },
+    }).select('-_id name avatar followers');
+    const followList = list.map((item) => {
+      const newList = {
+        name: item.name,
+        avatar: item.avatar.url,
+      };
+      item.followers.forEach((followItem) => {
+        if (followItem.user._id.toString() === req.user.id) {
+          newList.followCreatedAt = followItem.createdAt;
+        }
+      })
+      return newList
+    })
+    res.send({ status: true, data: followList });
   },
   // 追蹤用戶
   async postFollow(req, res, next) {
     if (req.params.id === req.user.id) {
       return appError(401, '無法追蹤自己', next);
     }
-
+    const followers = await User.find({
+      'followers.user': { $in: [req.user._id] }
+    })
+    const isFollowers = followers.some(item => req.params.id === item._id.valueOf());
+    if (isFollowers) {
+      return appError(401, "您已追蹤過此人", next);
+    }
     await User.updateOne(
       {
         _id: req.params.id,
