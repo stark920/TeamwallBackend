@@ -30,8 +30,8 @@ const thirdPartySignIn = async (thirdPartyName, data, res) => {
         userStateData = { activeStatus: 'both' };
       }
       userStateData[key] = id;
+      await User.updateOne({ email }, userStateData);
     }
-    await User.updateOne({ email }, userStateData);
     user = userExisted;
   } else {
     const randomPasswordBase = uuid.v4();
@@ -49,6 +49,7 @@ const thirdPartySignIn = async (thirdPartyName, data, res) => {
     newUserData[key] = id;
     user = await User.create(newUserData);
   }
+
   generateUrlJWT(user, res);
 };
 
