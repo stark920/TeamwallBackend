@@ -47,6 +47,7 @@ app.use((req, res) => {
     message: '您的路由不存在',
   });
 });
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   const error = err;
   // dev
