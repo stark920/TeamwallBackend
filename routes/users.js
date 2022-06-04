@@ -111,6 +111,9 @@ router.post(
 // 檢查註冊信
 router.get('/checkCode', handleErrorAsync(userControl.checkCode));
 
+// 檢查註冊信
+router.post('/forget-password', userValidator.email, handleErrorAsync(userControl.forgetPassword));
+
 // 更新使用者資料
 router.patch(
   '/profile',

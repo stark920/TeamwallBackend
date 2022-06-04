@@ -35,7 +35,6 @@ const isAuth = handleErrorAsync(async (req, res, next) => {
 
 // 一般登入 回傳json
 const generateSendJWT = (user, statusCode, res) => {
-  console.log(process.env.JWT_SECRET);
   const token = jwt.sign({ id: user[idPath] }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_DAY,
   });
@@ -60,7 +59,10 @@ const generateUrlJWT = (user, res) => {
   const token = jwt.sign({ id: user[idPath] }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_DAY,
   });
-  const path = `${process.env.WEBSITE_URL}?token=${token}&id=${user[idPath]}&name=${user.name}&avatar=${user.avatar.url}&gender=${user.gender}`;
+  let path = `${process.env.WEBSITE_URL}?token=${token}&id=${user[idPath]}&name=${user.name}&avatar=${user.avatar.url}&gender=${user.gender}`;
+  if (user?.mode) {
+    path += `&mode=${user.mode}`;
+  }
   res.redirect(path);
 };
 

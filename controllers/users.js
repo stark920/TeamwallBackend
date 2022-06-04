@@ -3,7 +3,7 @@ const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
 const path = require('path');
 const User = require('../models/userModel');
-const { appError, generateSendJWT } = require('../service');
+const { appError, generateSendJWT, generateUrlJWT } = require('../service');
 const Imgur = require('../utils/imgur');
 const sendMail = require('../service/email');
 const thirdPartySignIn = require('../service/thirdPartySignIn');
@@ -16,6 +16,7 @@ const user = {
     const {
       _id, name, avatar, gender,
     } = req.user;
+
     res.send({
       status: true,
       data: {
@@ -28,35 +29,39 @@ const user = {
   },
   // 登入
   async signIn(req, res, next) {
-    // 資料檢查錯誤處理
     const { errors } = validationResult(req);
-    if (errors.length > 0) return appError(400, '輸入資料錯誤', next);
+    if (errors.length > 0) {
+      return appError(400, '輸入資料錯誤', next);
+    }
 
     const { email, password } = req.body;
 
-    // 取得帳號的密碼和啟用狀態
     const userData = await User.findOne({ email }).select(
       '+password +activeStatus',
     );
 
-    // 錯誤處理
-    if (!userData) return appError(401, '信箱或密碼錯誤', next);
-    if (userData.activeStatus === 'none' || userData.activeStatus === 'third') return appError(401, '尚未啟用一般登入', next);
+    if (!userData) {
+      return appError(401, '信箱或密碼錯誤', next);
+    }
+    if (userData.activeStatus === 'none' || userData.activeStatus === 'third') {
+      return appError(401, '尚未啟用一般登入', next);
+    }
     const result = await bcrypt.compare(password, userData.password);
-    if (!result) return appError(401, '信箱或密碼錯誤', next);
+    if (!result) {
+      return appError(401, '信箱或密碼錯誤', next);
+    }
 
-    // 更新帳號為登入狀態並發送token
-    await User.findByIdAndUpdate(userData[idPath], { isLogin: true });
     return generateSendJWT(userData, 200, res);
   },
   // 註冊
   async signUp(req, res, next) {
-    // 資料檢查錯誤處理
     const { errors } = validationResult(req);
-    if (errors.length > 0) return appError(400, '輸入資料有誤', next);
+    if (errors.length > 0) {
+      return appError(400, '輸入資料有誤', next);
+    }
 
     const { email, name } = req.body;
-    // 檢查信箱是否存在 檢查會員總量是否超過
+
     const userData = await User.findOne({ email }).select('+activeStatus');
     const limit = await User.count();
     if (!userData && limit >= 500) {
@@ -69,7 +74,6 @@ const user = {
       return appError(422, '信箱已被使用', next);
     }
 
-    // 製作信件內容並發送
     const activeCode = jwt.sign({ email, name }, process.env.JWT_SECRET, {
       expiresIn: '1d',
     });
@@ -81,12 +85,10 @@ const user = {
     };
     const result = await sendMail(mail);
 
-    // 確認寄送是否成功
     if (!result.startsWith('250 2.0.0 OK')) {
       return appError(422, '寄送確認信件失敗，請嘗試其他信箱', next);
     }
 
-    // 沒帳號>建立新帳號 有帳號>更新密碼
     const password = await bcrypt.hash(req.body.password, 12);
     if (!userData) {
       await User.create({ email, password, name });
@@ -98,7 +100,6 @@ const user = {
   },
   // 帳號啟用檢查
   async checkCode(req, res) {
-    // 解析token
     const decodedToken = await new Promise((resolve) => {
       jwt.verify(req.query.code, process.env.JWT_SECRET, (error, payload) => {
         if (error) {
@@ -111,39 +112,72 @@ const user = {
       });
     });
 
-    // 取得註冊的資料
     const userData = await User.findOne({
       email: decodedToken.email,
     }).select('+activeStatus');
-    // 再次確認
     if (!userData) {
-      res.sendFile(path.join(__dirname, '../public/emailCheckFailed.html'));
-      return;
+      return res.sendFile(path.join(__dirname, '../public/emailCheckFailed.html'));
     }
 
-    // 更新啟用狀態
+    if (decodedToken?.mode && decodedToken.mode === 'forgetPassword') {
+      userData.mode = 'forgetPassword';
+      return generateUrlJWT(userData, res);
+    }
+
     let activeStatus;
     if (userData.activeStatus === 'none') {
       activeStatus = 'meta';
     } else if (userData.activeStatus === 'third') {
       activeStatus = 'both';
     } else {
-      // 已經啟用
-      res.sendFile(path.join(__dirname, '../public/emailCheckFailed.html'));
-      return;
+      return res.sendFile(path.join(__dirname, '../public/emailCheckFailed.html'));
     }
     await User.findByIdAndUpdate(userData[idPath], {
       name: decodedToken.name,
       activeStatus,
     });
 
-    res.sendFile(path.join(__dirname, '../public/emailCheckSuccess.html'));
+    return res.sendFile(path.join(__dirname, '../public/emailCheckSuccess.html'));
+  },
+  // 忘記密碼
+  async forgetPassword(req, res, next) {
+    const { errors } = validationResult(req);
+    if (errors.length > 0) {
+      return appError(400, '輸入資料錯誤', next);
+    }
+
+    const { email } = req.body;
+
+    const userData = await User.findOne({ email });
+    if (!userData) {
+      return appError(400, '信箱未註冊', next);
+    }
+
+    const activeCode = jwt.sign({ email, name: userData.name, mode: 'forgetPassword' }, process.env.JWT_SECRET, {
+      expiresIn: '1d',
+    });
+
+    const mail = {
+      from: 'MetaWall <metawall001@gmail.com>',
+      subject: '[MetaWall]密碼重置確認信',
+      to: email,
+      text: `尊敬的 ${userData.name} 您好！請點選連結進入 MetaWall 修改您的帳號密碼，[${process.env.HEROKU_URL}/users/checkCode?code=${activeCode}] 為保障您的帳號安全，請在24小時內點選該連結，您也可以將連結複製到瀏覽器位址列訪問。`,
+    };
+    const result = await sendMail(mail);
+
+    if (!result.startsWith('250 2.0.0 OK')) {
+      return appError(422, '寄送信件失敗', next);
+    }
+
+    return res.send({ status: true, message: '已將密碼變更信件寄送至您的信箱' });
   },
   // 修改個人資料
   async updateProfile(req, res, next) {
     const { errors } = validationResult(req);
-    if (errors.length > 0) return appError(400, '輸入資料有誤', next);
-    
+    if (errors.length > 0) {
+      return appError(400, '輸入資料有誤', next);
+    }
+
     let avatar;
     if (req.file) {
       if (req.user.avatar?.deleteHash) {
@@ -169,7 +203,7 @@ const user = {
       avatar: userData.avatar.url,
       gender: userData.gender,
     };
-    res.send({ status: true, data });
+    return res.send({ status: true, data });
   },
   // 修改密碼
   async updatePassword(req, res, next) {
@@ -202,7 +236,7 @@ const user = {
   },
   async getFollows(req, res) {
     const list = await User.find({
-      'followers.user': { $in: [req.user._id] },
+      'followers.user': { $in: [req.user[idPath]] },
     }).select('-_id name avatar followers');
     const followList = list.map((item) => {
       const newList = {
@@ -210,12 +244,12 @@ const user = {
         avatar: item.avatar.url,
       };
       item.followers.forEach((followItem) => {
-        if (followItem.user._id.toString() === req.user.id) {
+        if (followItem.user[idPath].toString() === req.user.id) {
           newList.followCreatedAt = followItem.createdAt;
         }
-      })
-      return newList
-    })
+      });
+      return newList;
+    });
     res.send({ status: true, data: followList });
   },
   // 追蹤用戶
@@ -224,11 +258,11 @@ const user = {
       return appError(401, '無法追蹤自己', next);
     }
     const followers = await User.find({
-      'followers.user': { $in: [req.user._id] }
-    })
-    const isFollowers = followers.some(item => req.params.id === item._id.valueOf());
+      'followers.user': { $in: [req.user[idPath]] },
+    });
+    const isFollowers = followers.some((item) => req.params.id === item[idPath].valueOf());
     if (isFollowers) {
-      return appError(401, "您已追蹤過此人", next);
+      return appError(401, '您已追蹤過此人', next);
     }
     await User.updateOne(
       {
