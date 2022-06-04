@@ -47,7 +47,7 @@ app.use((req, res) => {
     message: '您的路由不存在',
   });
 });
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
   const error = err;
   // dev
   error.statusCode = error.statusCode || 500;
