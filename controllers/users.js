@@ -237,9 +237,10 @@ const user = {
   async getFollows(req, res) {
     const list = await User.find({
       'followers.user': { $in: [req.user[idPath]] },
-    }).select('-_id name avatar followers');
+    }).select('id name avatar followers');
     const followList = list.map((item) => {
       const newList = {
+        id: item[idPath],
         name: item.name,
         avatar: item.avatar.url,
       };
