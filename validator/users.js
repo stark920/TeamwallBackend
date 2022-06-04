@@ -40,6 +40,7 @@ const rules = {
 const userValidator = {
   signUp: [rules.email, rules.password, rules.name],
   signIn: [rules.email, rules.password],
+  email: [rules.email],
   updateProfile: [rules.name, rules.gender],
   updatePassword: [rules.password, rules.passwordConfirm],
   getProfile: [rules.profileId],
