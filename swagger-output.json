@@ -758,6 +758,13 @@
         "responses": {}
       }
     },
+    "/users/forget-password": {
+      "post": {
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      }
+    },
     "/users/profile": {
       "patch": {
         "tags": [
@@ -1266,18 +1273,137 @@
         ]
       }
     },
+    "/chat/chat-record": {
+      "get": {
+        "tags": [
+          "Chats"
+        ],
+        "summary": "取得聊天紀錄",
+        "description": "如為登入狀態，回傳聊天紀錄",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "取得聊天紀錄",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "chatRecord": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "message": {
+                              "type": "string",
+                              "example": "我跟你說拉"
+                            },
+                            "sender": {
+                              "type": "string",
+                              "example": "629184780ccb3bf0b3f8a651"
+                            },
+                            "createdAt": {
+                              "type": "string",
+                              "example": "2022-06-04T08:12:41.870Z"
+                            },
+                            "_id": {
+                              "type": "string",
+                              "example": "629b13f90710d468849ff9ae"
+                            }
+                          }
+                        }
+                      },
+                      "avatar": {
+                        "type": "object",
+                        "properties": {
+                          "deleteHash": {
+                            "type": "string",
+                            "example": "ks49Hx06QixMhan"
+                          },
+                          "url": {
+                            "type": "string",
+                            "example": "https://i.imgur.com/XnOhDAC.png"
+                          }
+                        }
+                      },
+                      "name": {
+                        "type": "string",
+                        "example": "joe001"
+                      },
+                      "roomId": {
+                        "type": "string",
+                        "example": "62918bd00ccb3bf0b3f8a6b4"
+                      }
+                    }
+                  }
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "400": {
+            "description": "回傳錯誤訊息",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "message": {
+                  "type": "string",
+                  "example": "錯誤訊息"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Chats ＊＊＊測試用＊＊＊"
+        ],
+        "summary": "刪除所有聊天記錄",
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      }
+    },
     "/chat/room-info": {
       "post": {
-        "description": "",
+        "tags": [
+          "Chats"
+        ],
+        "summary": "取得聊天室id",
+        "description": "聊天室如果已存在會直接回傳房間ID，沒有的會建立一個新的房間ID",
         "parameters": [
           {
             "name": "body",
             "in": "body",
+            "description": "聊天對象的userID",
             "schema": {
               "type": "object",
               "properties": {
                 "receiver": {
-                  "example": "any"
+                  "type": "string",
+                  "example": "629184900ccb3bf0b3f8a655"
                 }
               }
             }
@@ -1285,58 +1411,81 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "取得聊天室id",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "roomId": {
+                  "type": "string",
+                  "example": "6299b03565105f86cb05f1ad"
+                },
+                "name": {
+                  "type": "string",
+                  "example": "Genos"
+                },
+                "avatar": {
+                  "type": "object",
+                  "properties": {
+                    "deleteHash": {
+                      "type": "string",
+                      "example": "EwnsACnMELyxgdC"
+                    },
+                    "url": {
+                      "type": "string",
+                      "example": "https://i.imgur.com/DVgUANY.jpg"
+                    }
+                  }
+                },
+                "_id": {
+                  "type": "string",
+                  "example": "6298b4c1a07f92d7cf6bd69b"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "400": {
+            "description": "回傳錯誤訊息",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "message": {
+                  "type": "string",
+                  "example": "錯誤訊息"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
           }
-        }
-      }
-    },
-    "/chat/chat-record/{id}": {
-      "delete": {
-        "description": "",
-        "parameters": [
+        },
+        "security": [
           {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
+            "apiKeyAuth": []
           }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
+        ]
       }
     },
-    "/chat/chat-record": {
+    "/chat/room-record": {
       "delete": {
+        "tags": [
+          "Chats ＊＊＊測試用＊＊＊"
+        ],
+        "summary": "刪除所有使用者聊天房間",
         "description": "",
         "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      },
-      "post": {
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/chat/all": {
-      "get": {
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
+        "responses": {}
       }
     },
     "/comment/{postId}": {

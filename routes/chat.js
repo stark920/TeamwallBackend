@@ -1,164 +1,107 @@
 const router = require('express').Router();
-const mongoose = require('mongoose');
-const User = require('../models/userModel');
-const ChatRoom = require('../models/chatRoomModel');
-const appError = require('../service/appError');
-const handleErrorAsync = require('../service/handleErrorAsync');
-const { isAuth } = require('../service/auth');
-
-const { ObjectId } = mongoose.Types;
-const idPath = '_id';
-
-// 取得聊天室id
-router.post(
-  '/room-info',
-  isAuth,
-  handleErrorAsync(async (req, res, next) => {
-    const sender = req.user[idPath].toString();
-    const { receiver } = req.body;
-    if (!receiver) {
-      return next(appError(400, '未填寫聊天對象使用者id', next));
-    }
-    if (sender === receiver) {
-      return next(appError(400, '自己不能跟自己聊天！', next));
-    }
-    const queryResult = await User.findById(sender).select('chatRecord');
-    const { receiver: receiverRecord, roomId } = queryResult?.chatRecord.find(
-      (item) => item.receiver.toString() === receiver,
-    ) || {};
-    const receiverUser = await User.findById(receiver);
-    if (!receiverUser) {
-      return next(appError(400, '沒有這個人喔', next));
-    }
-    const { name, avatar, _id } = receiverUser;
-    // 已經有聊天記錄就直接回傳id
-    let resData;
-    if (receiverRecord) {
-      resData = {
-        status: true,
-        roomId,
-        name,
-        avatar,
-        _id,
-      };
-    } else {
-      // 沒有聊天記錄就新建房間
-      const newRoom = await ChatRoom.create({
-        members: [ObjectId(sender), ObjectId(receiver)],
-      });
-      await User.findByIdAndUpdate(sender, {
-        $push: { chatRecord: { roomId: newRoom[idPath], receiver } },
-      });
-      await User.findByIdAndUpdate(receiver, {
-        $push: { chatRecord: { roomId: newRoom[idPath], receiver: sender } },
-      });
-      resData = {
-        status: true,
-        roomId: newRoom[idPath],
-        name,
-        avatar,
-        _id,
-      };
-    }
-    return res.send(resData);
-  }),
-);
-
-// TODO for test
-router.delete(
-  '/chat-record/:id',
-  handleErrorAsync(async (req, res) => {
-    const { id } = req.params;
-    await User.findOneAndUpdate({ _id: id }, { chatRecord: [] });
-    res.status(200).json({ message: 'success' });
-  }),
-);
-
-// TODO for test
-router.delete(
-  '/chat-record',
-  handleErrorAsync(async (req, res) => {
-    await ChatRoom.deleteMany({});
-    res.status(200).json({ message: 'success' });
-  }),
-);
-
-// TODO for test
-
-router.get('/all', async (req, res) => {
-  const chatRecord = await ChatRoom.find();
-  res.status(200).json({ message: 'success', chatRecord });
-});
+const chatController = require('../controllers/chats');
+const { isAuth, handleErrorAsync } = require('../service');
 
 // 取得聊天記錄
 router.get(
   '/chat-record',
   isAuth,
-  handleErrorAsync(async (req, res) => {
-    const queryResult = await User.aggregate([
-      { $match: { _id: req.user[idPath] } },
-      {
-        $project: { chatRecord: 1 },
-      },
-      {
-        $unwind: '$chatRecord',
-      },
-      {
-        $lookup: {
-          from: 'chatrooms',
-          let: {
-            roomId: '$chatRecord.roomId',
-            chatRecord: '$chatRecord',
-          },
-          pipeline: [
-            { $match: { $expr: { $eq: ['$_id', '$$roomId'] } } },
+  /**
+   *  #swagger.tags = ['Chats']
+   *  #swagger.summary = '取得聊天紀錄'
+   *  #swagger.description = '如為登入狀態，回傳聊天紀錄'
+   *  #swagger.security = [{ apiKeyAuth: []}]
+   *  #swagger.responses[200] = {
+        description: "取得聊天紀錄",
+        schema: {
+          status: true,
+          chatRecord: [
             {
-              $project: { messages: 1, _id: 0 },
-            },
-            {
-              $replaceRoot: {
-                newRoot: { message: { $slice: ['$messages', -1] } },
+              "message": [
+                  {
+                      "message": "我跟你說拉",
+                      "sender": "629184780ccb3bf0b3f8a651",
+                      "createdAt": "2022-06-04T08:12:41.870Z",
+                      "_id": "629b13f90710d468849ff9ae"
+                  }
+              ],
+              "avatar": {
+                  "deleteHash": "ks49Hx06QixMhan",
+                  "url": "https://i.imgur.com/XnOhDAC.png"
               },
+              "name": "joe001",
+              "roomId": "62918bd00ccb3bf0b3f8a6b4"
             },
-          ],
-          as: 'message',
-        },
-      },
-      {
-        $lookup: {
-          from: 'Users',
-          let: {
-            receiverId: '$chatRecord.receiver',
-            chatRecord: '$chatRecord',
-          },
-          pipeline: [
-            { $match: { $expr: { $eq: ['$_id', '$$receiverId'] } } },
-            {
-              $project: { avatar: 1, name: 1, _id: 0 },
-            },
-          ],
-          as: 'user',
-        },
-      },
-      {
-        $unwind: '$message',
-      },
-      {
-        $unwind: '$user',
-      },
-      {
-        $replaceRoot: {
-          newRoot: {
-            message: '$message.message',
-            avatar: '$user.avatar',
-            name: '$user.name',
-            roomId: '$chatRecord.roomId',
-          },
-        },
-      },
-    ]);
-    res.status(200).json({ status: true, chatRecord: queryResult });
-  }),
+          ]
+        }
+      }
+   *  #swagger.responses[400] = {
+        description: '回傳錯誤訊息',
+        schema: {
+          status: false,
+          message: '錯誤訊息'
+        }
+      }
+   */
+  handleErrorAsync(chatController.getChatRecord),
 );
 
+router.post(
+  '/room-info',
+  isAuth,
+  /**
+   *  #swagger.tags = ['Chats']
+   *  #swagger.summary = '取得聊天室id'
+   *  #swagger.description = '聊天室如果已存在會直接回傳房間ID，沒有的會建立一個新的房間ID'
+   *  #swagger.security = [{ apiKeyAuth: []}]
+   *  #swagger.parameters['body'] = {
+        in: 'body',
+        description: '聊天對象的userID',
+        schema: {
+          receiver:'629184900ccb3bf0b3f8a655'
+        }
+      }
+   *  #swagger.responses[200] = {
+        description: "取得聊天室id",
+        schema: {
+          "status": true,
+          "roomId": "6299b03565105f86cb05f1ad",
+          "name": "Genos",
+          "avatar": {
+              "deleteHash": "EwnsACnMELyxgdC",
+              "url": "https://i.imgur.com/DVgUANY.jpg"
+          },
+          "_id": "6298b4c1a07f92d7cf6bd69b"
+        }
+      }
+   *  #swagger.responses[400] = {
+        description: '回傳錯誤訊息',
+        schema: {
+          status: false,
+          message: '錯誤訊息'
+        }
+      }
+   */
+  handleErrorAsync(chatController.postRoomInfo),
+);
+
+router.delete(
+  '/chat-record',
+  isAuth,
+  /**
+   * #swagger.tags = ['Chats ＊＊＊測試用＊＊＊']
+   * #swagger.summary = '刪除所有聊天記錄'
+   */
+  handleErrorAsync(chatController.deleteChatRecord),
+);
+
+router.delete(
+  '/room-record',
+  isAuth,
+  /**
+   * #swagger.tags = ['Chats ＊＊＊測試用＊＊＊']
+   * #swagger.summary = '刪除所有使用者聊天房間'
+   */
+  handleErrorAsync(chatController.deleteRoomRecord),
+);
 module.exports = router;
