@@ -54,7 +54,7 @@ const posts = {
           },
           pipeline: [
             { $sort: { createAt: -1 } }, // comments new -> old
-            { $limit: 10 },
+            { $limit: 1 },
             {
               $addFields: {
                 actions: {
