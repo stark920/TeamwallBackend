@@ -53,7 +53,7 @@ const posts = {
             userId: '$userId',
           },
           pipeline: [
-            { $sort: { createAt: -1 } }, // comments new -> old
+            { $sort: { createdAt: -1 } }, // comments new -> old
             { $limit: 1 },
             {
               $addFields: {
