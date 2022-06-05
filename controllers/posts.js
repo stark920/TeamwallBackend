@@ -122,6 +122,34 @@ const posts = {
         },
       },
       { $unwind: '$userId' },
+      {
+        $lookup: {
+          from: 'comments',
+          localField: '_id',
+          foreignField: 'postId',
+          as: 'commentsAll',
+        },
+      },
+      {
+        $addFields: {
+          commentsNum: {
+            $size: '$commentsAll',
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          userId: 1,
+          content: 1,
+          image: 1,
+          likes: 1,
+          likesNum: 1,
+          comments: 1,
+          commentsNum: 1,
+          createdAt: 1
+        },
+      },
     ]);
 
     res.send({ status: true, data: postsData });
