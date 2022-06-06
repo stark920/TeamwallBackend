@@ -54,7 +54,7 @@ const userSchema = new mongoose.Schema(
         _id: false,
         user: {
           type: mongoose.Schema.ObjectId,
-          unique: true,
+          sparse: true,
           ref: 'user',
         },
         createdAt: {
