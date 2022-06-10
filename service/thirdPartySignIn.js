@@ -22,12 +22,12 @@ const thirdPartySignIn = async (thirdPartyName, data, res) => {
   let user;
 
   if (userExisted) {
-    let userStateData;
+    const userStateData = {};
     if (!userExisted[key]) {
       if (userExisted.activeStatus === 'none') {
-        userStateData = { activeStatus: 'third' };
+        userStateData.activeStatus = 'third';
       } else if (userExisted.activeStatus === 'meta') {
-        userStateData = { activeStatus: 'both' };
+        userStateData.activeStatus = 'both';
       }
       userStateData[key] = id;
       await User.updateOne({ email }, userStateData);
